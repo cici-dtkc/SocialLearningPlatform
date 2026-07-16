@@ -23,6 +23,10 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v4
 
+      - name: Normalize repository name
+        id: repo
+        run: echo "name=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -38,8 +42,8 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ env.REGISTRY }}/${{ github.repository }}/backend
-            ${{ env.REGISTRY }}/${{ github.repository }}/frontend
+            ${{ env.REGISTRY }}/${{ steps.repo.outputs.name }}/backend
+            ${{ env.REGISTRY }}/${{ steps.repo.outputs.name }}/frontend
           tags: |
             type=sha
             type=ref,event=tag
@@ -51,7 +55,7 @@ jobs:
           context: ./backend
           file: ./backend/Dockerfile
           push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}/backend:${{ steps.meta.outputs.version }}
+          tags: ${{ env.REGISTRY }}/${{ steps.repo.outputs.name }}/backend:${{ steps.meta.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -61,6 +65,6 @@ jobs:
           context: ./frontend
           file: ./frontend/Dockerfile
           push: true
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}/frontend:${{ steps.meta.outputs.version }}
+          tags: ${{ env.REGISTRY }}/${{ steps.repo.outputs.name }}/frontend:${{ steps.meta.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
