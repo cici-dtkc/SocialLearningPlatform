@@ -1,7 +1,4 @@
-import apiClient from "./http.js";
-
-// Note: Authorization headers are automatically added by axios interceptor
-// in axiosInstance.js, so we don't need to manually add them here
+import apiClient from "../../../services/http.js";
 
 export const getCurrentUserRequest = async () => {
 	const response = await apiClient.get("/users/me");

@@ -22,7 +22,10 @@ export const uploadPostImages = async (req, res) => {
             })),
         });
     } catch (error) {
-        return res.status(error.statusCode || 500).json({
+        console.error("[uploadPostImages] error:", error?.message);
+        console.error("[uploadPostImages] http_code:", error?.http_code);
+        console.error("[uploadPostImages] name:", error?.name);
+        return res.status(error.statusCode || error.http_code || 500).json({
             message: error.message || "Internal Server Error",
         });
     }
