@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime.js";
@@ -10,7 +10,6 @@ import Avatar from "../../../components/ui/Avatar.jsx";
 
 dayjs.extend(relativeTime);
 
-/* ── Icons ── */
 const HeartIcon = ({ filled }) => (
 	<svg className="h-4 w-4" fill={filled ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
 		<path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
@@ -23,6 +22,8 @@ const CommentIcon = () => (
 	</svg>
 );
 
+const sameId = (a, b) => a && b && String(a) === String(b);
+
 export default function PostCard({ post }) {
 	const dispatch = useDispatch();
 	const currentUser = useSelector(selectCurrentUser);
@@ -32,12 +33,23 @@ export default function PostCard({ post }) {
 	const [editContent, setEditContent] = useState(post.content);
 	const [editTags, setEditTags] = useState(post.tags?.join(", ") ?? "");
 	const [menuOpen, setMenuOpen] = useState(false);
+	const menuRef = useRef(null);
 
-	const isOwner =
-		currentUser &&
-		(post.author?.id === currentUser.id ||
-			post.author?._id === currentUser._id ||
-			post.author === currentUser.id);
+	// Close menu on outside click
+	useEffect(() => {
+		const handler = (e) => {
+			if (menuRef.current && !menuRef.current.contains(e.target)) {
+				setMenuOpen(false);
+			}
+		};
+		document.addEventListener("mousedown", handler);
+		return () => document.removeEventListener("mousedown", handler);
+	}, []);
+
+	// author can be populated object OR raw id string
+	const authorId = post.author?.id ?? post.author?._id ?? post.author;
+	const currentUserId = currentUser?.id ?? currentUser?._id;
+	const isOwner = !!currentUser && sameId(authorId, currentUserId);
 
 	const handleLike = () => {
 		if (!currentUser) { toast.error("Sign in to like posts"); return; }
@@ -60,6 +72,7 @@ export default function PostCard({ post }) {
 	};
 
 	const handleDelete = async () => {
+		setMenuOpen(false);
 		if (!confirm("Delete this post?")) return;
 		const res = await dispatch(deletePost(post.id));
 		if (deletePost.fulfilled.match(res)) toast.success("Post deleted");
@@ -94,7 +107,7 @@ export default function PostCard({ post }) {
 
 				{/* Post menu */}
 				{isOwner && (
-					<div className="relative">
+					<div className="relative" ref={menuRef}>
 						<button
 							onClick={() => setMenuOpen((v) => !v)}
 							className="rounded-md p-1 text-neutral-500 hover:bg-white/8 hover:text-white transition-colors"
@@ -112,8 +125,8 @@ export default function PostCard({ post }) {
 									Edit
 								</button>
 								<button
-									onClick={() => { handleDelete(); setMenuOpen(false); }}
-									className="w-full px-3 py-1.5 text-left text-xs text-red-400 hover:bg-white/5"
+									onClick={handleDelete}
+									className="w-full px-3 py-1.5 text-left text-xs text-red-400 hover:bg-red-500/10"
 								>
 									Delete
 								</button>
