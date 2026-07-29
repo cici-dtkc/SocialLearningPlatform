@@ -34,6 +34,15 @@ export const fetchMorePosts = createAsyncThunk("post/fetchMorePosts", async (par
 	}
 });
 
+export const fetchUserPosts = createAsyncThunk("post/fetchUserPosts", async ({ authorId, page = 1, limit = 10 }, { rejectWithValue }) => {
+	try {
+		const response = await getPostsRequest({ authorId, page, limit });
+		return { ...response, page };
+	} catch (error) {
+		return rejectWithValue(extractErrorMessage(error));
+	}
+});
+
 export const createPost = createAsyncThunk("post/createPost", async (payload, { rejectWithValue }) => {
 	try {
 		const response = await createPostRequest(payload);
@@ -134,6 +143,10 @@ const postSlice = createSlice({
 		likedCommentIds: {},
 		comments: {},
 		commentStatus: {},
+		// user-specific posts (for profile page)
+		userPosts: [],
+		userPostsMeta: { page: 1, limit: 10, total: 0, totalPages: 1 },
+		userPostsStatus: "idle",
 		error: null,
 	},
 	reducers: {
@@ -177,6 +190,26 @@ const postSlice = createSlice({
 			.addCase(deletePost.fulfilled, (state, action) => {
 				state.posts = state.posts.filter((p) => p.id !== action.payload);
 				state.meta.total = Math.max(0, state.meta.total - 1);
+				// also remove from userPosts
+				state.userPosts = state.userPosts.filter((p) => p.id !== action.payload);
+				state.userPostsMeta.total = Math.max(0, state.userPostsMeta.total - 1);
+			})
+			// fetch user posts
+			.addCase(fetchUserPosts.pending, (state, action) => {
+				state.userPostsStatus = "loading";
+			})
+			.addCase(fetchUserPosts.fulfilled, (state, action) => {
+				if (action.payload.page === 1) {
+					state.userPosts = action.payload.data;
+				} else {
+					state.userPosts = [...state.userPosts, ...action.payload.data];
+				}
+				state.userPostsMeta = action.payload.meta;
+				state.userPostsStatus = "succeeded";
+			})
+			.addCase(fetchUserPosts.rejected, (state, action) => {
+				state.userPostsStatus = "failed";
+				state.error = action.payload;
 			})
 			// toggle like (optimistic UI)
 			.addCase(toggleLike.pending, (state, action) => {

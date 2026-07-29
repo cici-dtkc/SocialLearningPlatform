@@ -9,7 +9,7 @@ import {
 
 export const getPosts = async (req, res) => {
     try {
-        const result = await getPostsService(req.query);
+        const result = await getPostsService(req.query);  // passes page, limit, authorId
 
         return res.status(200).json({
             message: "Get posts successfully",
