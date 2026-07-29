@@ -7,7 +7,7 @@ import {
 	registerRequest,
 	updateAvatarRequest,
 	updateMeRequest,
-} from "../../services/authService.js";
+} from "./services/authService.js";
 
 const tokenKey = "slp_token";
 const storedToken = localStorage.getItem(tokenKey);
