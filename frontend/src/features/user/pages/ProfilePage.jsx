@@ -10,9 +10,8 @@ import {
 } from "../../auth/authSlice.js";
 import { fetchUserPosts } from "../../post/postSlice.js";
 import PostCard from "../../post/components/PostCard.jsx";
-import Navbar from "../../../components/layout/Navbar.jsx";
+import Sidebar from "../../../components/layout/Sidebar.jsx";
 
-/* ── Avatar uploader ── */
 function AvatarUploader({ user }) {
 	const dispatch = useDispatch();
 	const fileRef = useRef(null);
@@ -72,7 +71,6 @@ function AvatarUploader({ user }) {
 	);
 }
 
-/* ── Edit profile form ── */
 function EditProfileForm({ user, onDone }) {
 	const dispatch = useDispatch();
 	const { register, handleSubmit, formState: { errors, isDirty } } = useForm({
@@ -145,7 +143,6 @@ function EditProfileForm({ user, onDone }) {
 	);
 }
 
-/* ── User posts tab ── */
 function UserPostsTab({ userId }) {
 	const dispatch = useDispatch();
 	const posts = useSelector((s) => s.post.userPosts);
@@ -211,7 +208,6 @@ function UserPostsTab({ userId }) {
 	);
 }
 
-/* ── Profile Page ── */
 export default function ProfilePage() {
 	const user = useSelector(selectCurrentUser);
 	const [editing, setEditing] = useState(false);
@@ -229,10 +225,10 @@ export default function ProfilePage() {
 	}
 
 	return (
-		<div className="min-h-screen bg-[#050816] text-white">
-			<Navbar />
-
-			<div className="mx-auto max-w-2xl px-4 py-8 space-y-5">
+		<div className="flex min-h-screen" style={{ background: "#000", color: "#fff" }}>
+			<Sidebar />
+			<div className="flex-1 flex justify-center px-6 py-8">
+				<div className="w-full" style={{ maxWidth: "600px" }}>
 
 				{/* Profile card */}
 				<div className="rounded-xl border border-white/8 bg-white/3 p-6">
@@ -319,6 +315,7 @@ export default function ProfilePage() {
 				<p className="text-center text-xs text-neutral-700 pb-4">
 					Hover your avatar to change it · Max 5MB
 				</p>
+			</div>
 			</div>
 		</div>
 	);

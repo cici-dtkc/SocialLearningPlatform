@@ -12,12 +12,9 @@ export default function Navbar() {
 	const [menuOpen, setMenuOpen] = useState(false);
 	const menuRef = useRef(null);
 
-	// Close dropdown when clicking outside
 	useEffect(() => {
 		const handler = (e) => {
-			if (menuRef.current && !menuRef.current.contains(e.target)) {
-				setMenuOpen(false);
-			}
+			if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
 		};
 		document.addEventListener("mousedown", handler);
 		return () => document.removeEventListener("mousedown", handler);
@@ -30,87 +27,88 @@ export default function Navbar() {
 	};
 
 	return (
-		<header className="sticky top-0 z-50 border-b border-white/8 bg-[#07111f]/80 backdrop-blur">
-			<div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-				{/* Logo */}
-				<Link to="/" className="flex items-center gap-2">
-					<img src={Logo} alt="SL" className="h-7 w-7 rounded-md" />
-					<span className="font-semibold text-white">Social Learning</span>
+		<header className="fixed top-0 left-0 right-0 z-50"
+			style={{ background: "#000", borderBottom: "1px solid rgba(255,255,255,0.12)", height: "60px" }}>
+			<div className="mx-auto flex items-center justify-between px-6"
+				style={{ maxWidth: "1024px", height: "60px" }}>
+
+				<Link to="/" className="flex items-center gap-2.5" style={{ textDecoration: "none" }}>
+					<img src={Logo} alt="SL" style={{ width: 30, height: 30, borderRadius: "8px" }} />
+					<span className="font-semibold text-white" style={{ fontSize: "18px" }}>
+						Social Learning
+					</span>
 				</Link>
 
 				{user ? (
-					<div className="flex items-center gap-3">
-						<span className="hidden text-sm text-neutral-400 sm:block">
-							Hi, <span className="text-white">{user.username}</span>
-						</span>
-
-						{/* Avatar + dropdown */}
-						<div className="relative" ref={menuRef}>
-							<button
-								onClick={() => setMenuOpen((v) => !v)}
-								className="h-8 w-8 overflow-hidden rounded-full ring-2 ring-transparent hover:ring-sky-400/50 transition-all"
-								aria-label="User menu"
-							>
+					<div className="flex items-center gap-4" ref={menuRef}>
+							<div className="relative">
+							<button onClick={() => setMenuOpen((v) => !v)} aria-label="User menu"
+								style={{ width: 28, height: 28, borderRadius: "50%", overflow: "hidden",
+									border: menuOpen ? "2px solid rgba(255,255,255,0.5)" : "2px solid transparent",
+									outline: "none", cursor: "pointer", transition: "border-color 0.2s",
+									padding: 0, background: "none" }}>
 								{user.avatar ? (
-									<img src={user.avatar} alt={user.username} className="h-full w-full object-cover" />
+									<img src={user.avatar} alt={user.username}
+										style={{ width: "100%", height: "100%", objectFit: "cover" }} />
 								) : (
-									<div className="h-full w-full bg-gradient-to-br from-sky-400 to-violet-500 flex items-center justify-center text-sm font-semibold text-slate-900">
+									<div className="flex items-center justify-center font-bold"
+										style={{ width: "100%", height: "100%",
+											background: "linear-gradient(135deg, #38bdf8, #a855f7)",
+											color: "#0a0a0a", fontSize: "11px" }}>
 										{user.username?.[0]?.toUpperCase()}
 									</div>
 								)}
 							</button>
 
 							{menuOpen && (
-								<div className="absolute right-0 mt-2 w-48 rounded-xl border border-white/10 bg-[#0d1525] shadow-xl overflow-hidden">
-									{/* User info */}
-									<div className="border-b border-white/8 px-4 py-3">
-										<p className="text-sm font-medium text-white truncate">
-											{user.fullName || user.username}
+								<div className="absolute right-0 mt-2 shadow-2xl"
+									style={{ width: 220, background: "#1a1a1a",
+										border: "1px solid rgba(255,255,255,0.12)",
+										borderRadius: "12px", overflow: "hidden", zIndex: 100 }}>
+									<div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+										<p className="font-semibold text-white truncate" style={{ fontSize: "14px" }}>
+											{user.username}
 										</p>
-										<p className="text-xs text-neutral-400 truncate">{user.email}</p>
-										<span className={`mt-1 inline-block rounded-full px-1.5 py-0.5 text-[10px] ${
-											user.role === "mentor" ? "bg-violet-500/20 text-violet-300" :
-											user.role === "admin" ? "bg-red-500/20 text-red-300" :
-											"bg-sky-500/20 text-sky-300"
-										}`}>
+										<p className="truncate" style={{ fontSize: "12px", color: "#a8a8a8" }}>
+											{user.fullName || user.email}
+										</p>
+										<span style={{ display: "inline-block", marginTop: "4px",
+											fontSize: "10px", borderRadius: "20px", padding: "2px 8px",
+											background: user.role === "mentor" ? "rgba(168,85,247,0.2)" :
+												user.role === "admin" ? "rgba(239,68,68,0.2)" : "rgba(0,149,246,0.15)",
+											color: user.role === "mentor" ? "#c084fc" :
+												user.role === "admin" ? "#fca5a5" : "#60a5fa" }}>
 											{user.role}
 										</span>
 									</div>
 
-									{/* Menu items */}
-									<div className="py-1">
-										<Link
-											to="/profile"
-											onClick={() => setMenuOpen(false)}
-											className="flex items-center gap-2.5 px-4 py-2 text-sm text-neutral-300 hover:bg-white/5 hover:text-white transition-colors"
-										>
-											<svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-												<path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+									<div style={{ padding: "4px 0" }}>
+										<Link to="/profile" onClick={() => setMenuOpen(false)}
+											style={{ display: "flex", alignItems: "center", gap: "10px",
+												padding: "9px 16px", fontSize: "14px", color: "#ffffff",
+												textDecoration: "none" }}
+											className="hover:bg-white/5 transition-colors">
+											<svg style={{ width: 16, height: 16 }} fill="none" viewBox="0 0 24 24"
+												stroke="currentColor" strokeWidth={1.8}>
+												<path strokeLinecap="round" strokeLinejoin="round"
+													d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
 											</svg>
-											View profile
-										</Link>
-										<Link
-											to="/profile"
-											onClick={() => setMenuOpen(false)}
-											className="flex items-center gap-2.5 px-4 py-2 text-sm text-neutral-300 hover:bg-white/5 hover:text-white transition-colors"
-										>
-											<svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-												<path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
-											</svg>
-											Edit profile
+											Your profile
 										</Link>
 									</div>
 
-									{/* Logout */}
-									<div className="border-t border-white/8 py-1">
-										<button
-											onClick={handleLogout}
-											className="flex w-full items-center gap-2.5 px-4 py-2 text-sm text-red-400 hover:bg-white/5 transition-colors"
-										>
-											<svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-												<path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+									<div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", padding: "4px 0" }}>
+										<button onClick={handleLogout}
+											style={{ display: "flex", alignItems: "center", gap: "10px",
+												width: "100%", padding: "9px 16px", fontSize: "14px",
+												color: "#ed4956", background: "none", border: "none", cursor: "pointer" }}
+											className="hover:bg-white/5 transition-colors">
+											<svg style={{ width: 16, height: 16 }} fill="none" viewBox="0 0 24 24"
+												stroke="currentColor" strokeWidth={1.8}>
+												<path strokeLinecap="round" strokeLinejoin="round"
+													d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
 											</svg>
-											Sign out
+											Log out
 										</button>
 									</div>
 								</div>
@@ -118,18 +116,15 @@ export default function Navbar() {
 						</div>
 					</div>
 				) : (
-					<div className="flex items-center gap-2">
-						<Link
-							to="/login"
-							className="rounded-md px-3 py-1.5 text-sm text-neutral-300 hover:text-white transition-colors"
-						>
-							Sign in
+					<div className="flex items-center gap-3">
+						<Link to="/login" className="font-semibold text-white hover:text-white/70 transition-colors"
+							style={{ fontSize: "14px", textDecoration: "none" }}>
+							Log in
 						</Link>
-						<Link
-							to="/register"
-							className="rounded-md bg-sky-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-sky-400 transition-colors"
-						>
-							Get started
+						<Link to="/register" className="font-semibold text-white hover:opacity-80 transition-opacity"
+							style={{ fontSize: "14px", textDecoration: "none",
+								background: "#0095f6", borderRadius: "8px", padding: "7px 18px" }}>
+							Sign up
 						</Link>
 					</div>
 				)}

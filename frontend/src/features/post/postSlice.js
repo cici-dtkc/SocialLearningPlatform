@@ -15,7 +15,6 @@ import {
 	updatePostRequest,
 } from "./services/postService.js";
 
-// ── Thunks ──────────────────────────────────────────────
 export const fetchPosts = createAsyncThunk("post/fetchPosts", async (params, { rejectWithValue }) => {
 	try {
 		const response = await getPostsRequest(params);
@@ -132,7 +131,7 @@ export const toggleCommentLike = createAsyncThunk("post/toggleCommentLike", asyn
 	}
 });
 
-// ── Slice ────────────────────────────────────────────────
+//  Slice  
 const postSlice = createSlice({
 	name: "post",
 	initialState: {
@@ -153,7 +152,7 @@ const postSlice = createSlice({
 		clearPostError(state) {
 			state.error = null;
 		},
-		// Seed liked state from outside (e.g. when user loads)
+		// Seed liked state from outside 
 		setLikedPosts(state, action) {
 			state.likedPostIds = action.payload;
 		},
