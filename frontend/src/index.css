@@ -17,7 +17,6 @@ body {
   color: #ffffff;
 }
 
-/* Fix autocomplete background color */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
@@ -28,21 +27,23 @@ input:-webkit-autofill:active {
   transition: background-color 5000s ease-in-out 0s;
 }
 
-/* Fix for Firefox */
 input:-moz-autofill {
   box-shadow: 0 0 0 100px rgba(255, 255, 255, 0.05) inset !important;
   color: #0d0d0d !important;
 }
 
-/* Ensure input text is always white */
-input[type="text"],
-input[type="email"],
-input[type="password"],
-textarea {
+input[type="text"].text-gray-900,
+input[type="email"].text-gray-900,
+input[type="password"].text-gray-900 {
   color: #0d0d0d !important;
 }
 
-/* Placeholder color */
+textarea,
+input[type="text"]:not(.text-gray-900),
+input[type="email"]:not(.text-gray-900),
+input[type="password"]:not(.text-gray-900) {
+  color: inherit;
+}
 input::placeholder,
 textarea::placeholder {
   color: rgb(115, 115, 115);

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime.js";
@@ -143,41 +144,29 @@ export default function PostCard({ post }) {
 				style={{ paddingTop: "12px", paddingBottom: "12px" }}
 			>
 				<div className="flex items-center gap-3">
-					{post.author?.avatar ? (
-						<img
-							src={post.author.avatar}
-							alt={post.author?.username}
-							style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
-						/>
-					) : (
-						<div
-							className="flex items-center justify-center font-semibold text-black"
-							style={{
-								width: 32,
-								height: 32,
-								borderRadius: "50%",
-								background: "linear-gradient(135deg, #38bdf8, #a855f7)",
-								fontSize: "12px",
-								flexShrink: 0,
-							}}
-						>
-							{post.author?.username?.[0]?.toUpperCase() ?? "?"}
-						</div>
-					)}
+					{/* Avatar → link to profile */}
+					<Link to={`/profile/${authorId}`} style={{ textDecoration: "none", flexShrink: 0 }}>
+						{post.author?.avatar ? (
+							<img src={post.author.avatar} alt={post.author?.username}
+								style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }} />
+						) : (
+							<div className="flex items-center justify-center font-semibold"
+								style={{ width: 32, height: 32, borderRadius: "50%",
+									background: "linear-gradient(135deg, #38bdf8, #a855f7)",
+									color: "#0a0a0a", fontSize: "12px" }}>
+								{post.author?.username?.[0]?.toUpperCase() ?? "?"}
+							</div>
+						)}
+					</Link>
 					<div className="flex items-center gap-2">
-						<span className="font-semibold text-white" style={{ fontSize: "14px" }}>
+						<Link to={`/profile/${authorId}`}
+							className="font-semibold text-white hover:underline"
+							style={{ fontSize: "14px", textDecoration: "none" }}>
 							{post.author?.username ?? "unknown"}
-						</span>
+						</Link>
 						{post.author?.role === "mentor" && (
-							<span
-								style={{
-									fontSize: "10px",
-									background: "rgba(168,85,247,0.2)",
-									color: "#c084fc",
-									borderRadius: "20px",
-									padding: "2px 8px",
-								}}
-							>
+							<span style={{ fontSize: "10px", background: "rgba(168,85,247,0.2)",
+								color: "#c084fc", borderRadius: "20px", padding: "2px 8px" }}>
 								mentor
 							</span>
 						)}

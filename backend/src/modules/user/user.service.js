@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import User from "./user.model.js";
 import cloudinary from "../../config/cloudinary.js";
 
@@ -14,13 +15,26 @@ const sanitizeUser = (user) => ({
 
 export const getMe = async (userId) => {
     const user = await User.findById(userId);
-
     if (!user) {
         const error = new Error("User not found");
         error.statusCode = 404;
         throw error;
     }
+    return sanitizeUser(user);
+};
 
+export const getUserById = async (userId) => {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        const error = new Error("User not found");
+        error.statusCode = 404;
+        throw error;
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+        const error = new Error("User not found");
+        error.statusCode = 404;
+        throw error;
+    }
     return sanitizeUser(user);
 };
 
