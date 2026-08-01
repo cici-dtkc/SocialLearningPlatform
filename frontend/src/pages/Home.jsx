@@ -9,7 +9,6 @@ import PostFeed from "../features/post/components/PostFeed.jsx";
 import Avatar from "../components/ui/Avatar.jsx";
 import Logo from "../assets/logo.svg";
 
-/* ── Suggested user row ── */
 function SuggestedUserRow({ name, handle }) {
 	return (
 		<div className="flex items-center justify-between py-2">
@@ -33,7 +32,6 @@ function SuggestedUserRow({ name, handle }) {
 	);
 }
 
-/* ── Landing (not logged in) ── */
 function LandingView() {
 	return (
 		<div className="min-h-screen flex flex-col items-center justify-center px-6 text-center"
@@ -69,7 +67,6 @@ function LandingView() {
 	);
 }
 
-/* ── Feed (logged in) ── */
 function FeedView({ user, composerOpen, setComposerOpen }) {
 	return (
 		<div className="flex min-h-screen" style={{ background: "#000" }}>
@@ -89,7 +86,6 @@ function FeedView({ user, composerOpen, setComposerOpen }) {
 							</div>
 						)}
 						{!composerOpen && (
-							/* Quick compose bar */
 							<div
 								className="flex items-center gap-3 rounded-xl cursor-pointer hover:bg-white/5 transition-colors"
 								style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)",
@@ -159,7 +155,6 @@ function FeedView({ user, composerOpen, setComposerOpen }) {
 	);
 }
 
-/* ── Main export ── */
 export default function HomePage() {
 	const user = useSelector(selectCurrentUser);
 	const [composerOpen, setComposerOpen] = useState(false);

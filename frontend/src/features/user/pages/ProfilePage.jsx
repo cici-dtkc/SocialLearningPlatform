@@ -9,7 +9,9 @@ import {
 	updateMe,
 } from "../../auth/authSlice.js";
 import { fetchUserPosts } from "../../post/postSlice.js";
+import { fetchFollowCounts } from "../userSlice.js";
 import PostCard from "../../post/components/PostCard.jsx";
+import FollowListModal from "../components/FollowListModal.jsx";
 import Sidebar from "../../../components/layout/Sidebar.jsx";
 
 function AvatarUploader({ user }) {
@@ -209,17 +211,23 @@ function UserPostsTab({ userId }) {
 }
 
 export default function ProfilePage() {
+	const dispatch = useDispatch();
 	const user = useSelector(selectCurrentUser);
+	const counts = useSelector((s) => user ? s.user.counts[user.id] : null);
+	const postTotal = useSelector((s) => s.post.userPostsMeta.total);
 	const [editing, setEditing] = useState(false);
 	const [activeTab, setActiveTab] = useState("posts");
+	const [followModal, setFollowModal] = useState(null); // "followers" | "following" | null
+
+	useEffect(() => {
+		if (user?.id) dispatch(fetchFollowCounts(user.id));
+	}, [user?.id, dispatch]);
 
 	if (!user) {
 		return (
-			<div className="min-h-screen bg-[#050816] text-white">
-				<Navbar />
-				<div className="flex items-center justify-center py-20 text-neutral-400 text-sm">
-					You are not logged in.
-				</div>
+			<div className="flex min-h-screen items-center justify-center"
+				style={{ background: "#000", color: "#a8a8a8", fontSize: "14px" }}>
+				You are not logged in.
 			</div>
 		);
 	}
@@ -235,8 +243,7 @@ export default function ProfilePage() {
 					<div className="flex items-start gap-5">
 						<AvatarUploader user={user} />
 
-						<div className="flex-1 min-w-0">
-							<div className="flex items-center gap-2 flex-wrap">
+						<div className="flex-1 min-w-0">							<div className="flex items-center gap-2 flex-wrap">
 								<h1 className="text-xl font-semibold">{user.fullName || user.username}</h1>
 								<span className={`rounded-full px-2 py-0.5 text-xs ${
 									user.role === "mentor" ? "bg-violet-500/20 text-violet-300" :
@@ -267,13 +274,27 @@ export default function ProfilePage() {
 					{/* Stats */}
 					<div className="mt-5 flex gap-6 border-t border-white/8 pt-4">
 						{[
-							["Posts", useSelector((s) => s.post.userPostsMeta.total)],
-							["Followers", 0],
-							["Following", 0],
-						].map(([label, val]) => (
+							["Posts", postTotal, null],
+							["Followers", counts?.followersCount ?? 0, "followers"],
+							["Following", counts?.followingCount ?? 0, "following"],
+						].map(([label, val, modal]) => (
 							<div key={label}>
-								<p className="text-sm font-semibold text-white">{val}</p>
-								<p className="text-xs text-neutral-500">{label}</p>
+								{modal ? (
+									<button
+										onClick={() => setFollowModal(modal)}
+										style={{ background: "none", border: "none", cursor: "pointer",
+											textAlign: "left", padding: 0 }}
+										className="hover:opacity-70 transition-opacity"
+									>
+										<p className="text-sm font-semibold text-white">{val}</p>
+										<p className="text-xs text-neutral-500">{label}</p>
+									</button>
+								) : (
+									<div>
+										<p className="text-sm font-semibold text-white">{val}</p>
+										<p className="text-xs text-neutral-500">{label}</p>
+									</div>
+								)}
 							</div>
 						))}
 					</div>
