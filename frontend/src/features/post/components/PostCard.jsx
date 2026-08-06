@@ -7,7 +7,6 @@ import toast from "react-hot-toast";
 import { selectCurrentUser } from "../../auth/authSlice.js";
 import { createComment, deletePost, toggleLike, updatePost } from "../postSlice.js";
 import CommentSection from "./CommentSection.jsx";
-import Avatar from "../../../components/ui/Avatar.jsx";
 
 dayjs.extend(relativeTime);
 

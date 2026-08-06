@@ -108,17 +108,30 @@ export default function PublicProfilePage() {
 
 	useEffect(() => {
 		if (!userId) return;
+
+		let cancelled = false;
+
+		setProfileUser(null);
+		setError(null);
 		setLoading(true);
+
 		getUserByIdRequest(userId)
 			.then((res) => {
-				setProfileUser(res.data);
-				setLoading(false);
+				if (!cancelled) {
+					setProfileUser(res.data);
+					setLoading(false);
+				}
 			})
 			.catch(() => {
-				setError("User not found");
-				setLoading(false);
+				if (!cancelled) {
+					setError("User not found");
+					setLoading(false);
+				}
 			});
+
 		dispatch(fetchFollowCounts(userId));
+
+		return () => { cancelled = true; };
 	}, [userId, dispatch]);
 
 	if (loading) {

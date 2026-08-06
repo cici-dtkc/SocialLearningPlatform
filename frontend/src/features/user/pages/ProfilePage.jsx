@@ -11,7 +11,6 @@ import {
 import { fetchUserPosts } from "../../post/postSlice.js";
 import { fetchFollowCounts } from "../userSlice.js";
 import PostCard from "../../post/components/PostCard.jsx";
-import FollowListModal from "../components/FollowListModal.jsx";
 import Sidebar from "../../../components/layout/Sidebar.jsx";
 
 function AvatarUploader({ user }) {
@@ -217,7 +216,6 @@ export default function ProfilePage() {
 	const postTotal = useSelector((s) => s.post.userPostsMeta.total);
 	const [editing, setEditing] = useState(false);
 	const [activeTab, setActiveTab] = useState("posts");
-	const [followModal, setFollowModal] = useState(null); // "followers" | "following" | null
 
 	useEffect(() => {
 		if (user?.id) dispatch(fetchFollowCounts(user.id));
