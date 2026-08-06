@@ -110,7 +110,7 @@ export const updateGroup = async (groupId, requesterId, payload) => {
     const membership = await getMembership(groupId, requesterId);
     requireRole(membership?.role, ["owner", "admin"]);
 
-    const allowed = ["name", "description", "visibility", "tags"];
+    const allowed = ["name", "description", "visibility", "tags", "avatar", "cover"];
     const updateData = {};
     for (const field of allowed) {
         if (payload[field] !== undefined) updateData[field] = payload[field];
