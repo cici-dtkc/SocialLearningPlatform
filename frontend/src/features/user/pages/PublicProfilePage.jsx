@@ -94,9 +94,8 @@ export default function PublicProfilePage() {
 	const counts = useSelector((s) => s.user.counts[userId]);
 	const postTotal = useSelector((s) => s.post.userPostsMeta.total);
 
-	const [profileUser, setProfileUser] = useState(null);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(null);
+	// Merge loading/error/data into one state to avoid multiple setState in effect
+	const [fetchState, setFetchState] = useState({ loading: true, error: null, user: null });
 	const [followModal, setFollowModal] = useState(null);
 
 	// If viewing own profile, redirect to /profile
@@ -111,21 +110,15 @@ export default function PublicProfilePage() {
 
 		let cancelled = false;
 
-		setProfileUser(null);
-		setError(null);
-		setLoading(true);
-
 		getUserByIdRequest(userId)
 			.then((res) => {
 				if (!cancelled) {
-					setProfileUser(res.data);
-					setLoading(false);
+					setFetchState({ loading: false, error: null, user: res.data });
 				}
 			})
 			.catch(() => {
 				if (!cancelled) {
-					setError("User not found");
-					setLoading(false);
+					setFetchState({ loading: false, error: "User not found", user: null });
 				}
 			});
 
@@ -133,6 +126,8 @@ export default function PublicProfilePage() {
 
 		return () => { cancelled = true; };
 	}, [userId, dispatch]);
+
+	const { loading, error, user: profileUser } = fetchState;
 
 	if (loading) {
 		return (
