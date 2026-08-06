@@ -6,6 +6,8 @@ import LoginPage from "./features/auth/pages/LoginPage.jsx";
 import RegisterPage from "./features/auth/pages/RegisterPage.jsx";
 import HomePage from "./pages/Home.jsx";
 import NotFound from "./pages/NotFound.jsx";
+import ProfilePage from "./features/user/pages/ProfilePage.jsx";
+import PublicProfilePage from "./features/user/pages/PublicProfilePage.jsx";
 import { loadCurrentUser, selectAuthInitialized } from "./features/auth/authSlice.js";
 
 function AppContent() {
@@ -32,6 +34,8 @@ function AppContent() {
 			<Route path="/login" element={<LoginPage />} />
 			<Route path="/register" element={<RegisterPage />} />
 			<Route path="/" element={<HomePage />} />
+			<Route path="/profile" element={<ProfilePage />} />
+			<Route path="/profile/:userId" element={<PublicProfilePage />} />
 			<Route path="*" element={<NotFound />} />
 		</Routes>
 	);

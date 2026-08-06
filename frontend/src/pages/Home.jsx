@@ -1,96 +1,155 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../features/auth/authSlice.js";
+import Sidebar from "../components/layout/Sidebar.jsx";
 import Navbar from "../components/layout/Navbar.jsx";
 import PostComposer from "../features/post/components/PostComposer.jsx";
 import PostFeed from "../features/post/components/PostFeed.jsx";
 import Avatar from "../components/ui/Avatar.jsx";
 import Logo from "../assets/logo.svg";
 
-/* ── Landing (chưa đăng nhập) ── */
-function LandingView() {
+function SuggestedUserRow({ name, handle }) {
 	return (
-		<div className="relative min-h-[calc(100vh-56px)] flex flex-col items-center justify-center px-6 py-16 text-center">
-			<div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(56,189,248,0.15),_transparent_50%),radial-gradient(ellipse_at_bottom-right,_rgba(168,85,247,0.12),_transparent_50%)]" />
-			<div className="relative max-w-2xl space-y-6">
-				<div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-400 to-violet-500 shadow-lg shadow-sky-500/20">
-					<img src={Logo} alt="SL" className="h-10 w-10" />
+		<div className="flex items-center justify-between py-2">
+			<div className="flex items-center gap-3">
+				<div className="flex items-center justify-center font-semibold"
+					style={{ width: 32, height: 32, borderRadius: "50%",
+						background: "linear-gradient(135deg, #38bdf8, #a855f7)",
+						color: "#0a0a0a", fontSize: "12px", flexShrink: 0 }}>
+					{name[0].toUpperCase()}
 				</div>
 				<div>
-					<p className="text-sm uppercase tracking-widest text-sky-400/80 mb-2">Social Learning Platform</p>
-					<h1 className="text-4xl font-bold leading-tight">
-						Study together.<br />Share progress.<br />Keep moving.
-					</h1>
+					<p className="font-semibold text-white" style={{ fontSize: "13px" }}>{handle}</p>
+					<p style={{ fontSize: "12px", color: "#a8a8a8" }}>{name}</p>
 				</div>
-				<p className="text-base text-neutral-400 leading-7 max-w-lg mx-auto">
-					A focused space for students to post updates, share resources, and collaborate.
-				</p>
-				<div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-					<Link to="/register" className="rounded-full bg-sky-500 px-6 py-2.5 font-medium text-white hover:bg-sky-400 transition-colors">
-						Get started — it's free
-					</Link>
-					<Link to="/login" className="rounded-full border border-white/15 px-6 py-2.5 font-medium text-white hover:bg-white/8 transition-colors">
-						Sign in
-					</Link>
+			</div>
+			<button style={{ fontSize: "13px", color: "#0095f6", fontWeight: 600,
+				background: "none", border: "none", cursor: "pointer" }}>
+				Follow
+			</button>
+		</div>
+	);
+}
+
+function LandingView() {
+	return (
+		<div className="min-h-screen flex flex-col items-center justify-center px-6 text-center"
+			style={{ background: "#000" }}>
+			<div className="max-w-md space-y-6">
+				<div className="mx-auto flex items-center justify-center"
+					style={{ width: 72, height: 72, borderRadius: "18px",
+						background: "linear-gradient(135deg, #38bdf8, #a855f7)" }}>
+					<img src={Logo} alt="SL" style={{ width: 44, height: 44 }} />
 				</div>
-				<div className="flex flex-wrap justify-center gap-2 pt-2">
-					{["Post updates", "Share resources", "Comment & discuss", "Track progress"].map((f) => (
-						<span key={f} className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-neutral-400">{f}</span>
-					))}
+				<div>
+					<h1 className="font-bold text-white" style={{ fontSize: "30px" }}>Social Learning</h1>
+					<p style={{ fontSize: "15px", color: "#a8a8a8", marginTop: "8px", lineHeight: "1.6" }}>
+						Learn together. Share progress. Keep moving forward.
+					</p>
+				</div>
+				<div className="space-y-3">
+					<Link to="/login"
+						className="flex items-center justify-center w-full font-semibold text-white rounded-lg hover:opacity-90 transition-opacity"
+						style={{ background: "#0095f6", padding: "10px 0", fontSize: "14px",
+							textDecoration: "none", borderRadius: "8px" }}>
+						Log in
+					</Link>
+					<Link to="/register"
+						className="flex items-center justify-center w-full font-semibold text-white rounded-lg hover:bg-white/10 transition-colors"
+						style={{ border: "1px solid rgba(255,255,255,0.2)", padding: "10px 0",
+							fontSize: "14px", textDecoration: "none", borderRadius: "8px" }}>
+						Create new account
+					</Link>
 				</div>
 			</div>
 		</div>
 	);
 }
 
-/* ── Feed (đã đăng nhập) ── */
-function FeedView({ user }) {
+function FeedView({ user, composerOpen, setComposerOpen }) {
 	return (
-		<div className="mx-auto max-w-5xl px-4 py-6">
-			<div className="grid grid-cols-1 gap-6 md:grid-cols-[1fr_260px]">
+		<div className="flex min-h-screen" style={{ background: "#000" }}>
+			{/* Sidebar */}
+			<Sidebar onCreatePost={() => setComposerOpen(true)} />
 
-				{/* Main feed */}
-				<main className="space-y-4 min-w-0">
-					<PostComposer />
-					<PostFeed />
-				</main>
+			{/* Main content */}
+			<div className="flex-1 flex justify-center px-6 py-8">
+				<div className="flex gap-10 w-full" style={{ maxWidth: "920px" }}>
 
-				{/* Sidebar */}
-				<aside className="hidden md:block space-y-4">
-					{/* User card */}
-					<div className="rounded-xl border border-white/8 bg-white/3 p-4">
-						<div className="flex items-center gap-3 mb-3">
-							<Avatar user={user} size="md" />
-							<div className="min-w-0">
-								<p className="text-sm font-medium text-white truncate">{user.fullName || user.username}</p>
-								<p className="text-xs text-neutral-400">@{user.username}</p>
+					{/* Feed column */}
+					<main style={{ flex: 1, maxWidth: "600px", minWidth: 0 }}>
+						{/* Composer — shown when Create is clicked */}
+						{composerOpen && (
+							<div style={{ marginBottom: "16px" }}>
+								<PostComposer autoOpen onClose={() => setComposerOpen(false)} />
 							</div>
-						</div>
-						<div className="flex gap-4 border-t border-white/8 pt-3 text-center">
-							{[["Posts", 0], ["Followers", 0], ["Following", 0]].map(([label, val]) => (
-								<div key={label} className="flex-1">
-									<p className="text-sm font-semibold text-white">{val}</p>
-									<p className="text-xs text-neutral-500">{label}</p>
-								</div>
-							))}
-						</div>
-					</div>
+						)}
+						{!composerOpen && (
+							<div
+								className="flex items-center gap-3 rounded-xl cursor-pointer hover:bg-white/5 transition-colors"
+								style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)",
+									padding: "12px 16px", marginBottom: "16px" }}
+								onClick={() => setComposerOpen(true)}
+							>
+								<Avatar user={user} size="sm" />
+								<span style={{ fontSize: "14px", color: "#737373" }}>What are you learning today?</span>
+								<button
+									style={{ marginLeft: "auto", background: "#0095f6", border: "none",
+										borderRadius: "8px", padding: "6px 14px", fontSize: "13px",
+										fontWeight: 600, color: "white", cursor: "pointer" }}
+									onClick={(e) => { e.stopPropagation(); setComposerOpen(true); }}
+								>
+									Post
+								</button>
+							</div>
+						)}
 
-					{/* Trending tags */}
-					<div className="rounded-xl border border-white/8 bg-white/3 p-4">
-						<h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-400">
-							Trending topics
-						</h3>
-						<div className="space-y-2">
-							{[["#javascript", 34], ["#react", 28], ["#nodejs", 22], ["#algorithms", 19], ["#webdev", 15]].map(([tag, count]) => (
-								<div key={tag} className="flex items-center justify-between">
-									<span className="text-sm text-sky-400 hover:text-sky-300 cursor-pointer">{tag}</span>
-									<span className="text-xs text-neutral-500">{count} posts</span>
+						<PostFeed />
+					</main>
+
+					{/* Right sidebar */}
+					<aside className="hidden xl:block" style={{ width: "300px", flexShrink: 0 }}>
+						<div style={{ position: "sticky", top: "24px" }}>
+							{/* User card */}
+							<div className="flex items-center justify-between" style={{ marginBottom: "20px" }}>
+								<div className="flex items-center gap-3">
+									<Avatar user={user} size="md" />
+									<div>
+										<p className="font-semibold text-white" style={{ fontSize: "14px" }}>{user.username}</p>
+										<p style={{ fontSize: "13px", color: "#a8a8a8" }}>{user.fullName || user.email}</p>
+									</div>
 								</div>
-							))}
+								<Link to="/profile"
+									style={{ fontSize: "13px", fontWeight: 600, color: "#0095f6", textDecoration: "none" }}>
+									View profile
+								</Link>
+							</div>
+
+							{/* Suggested */}
+							<div className="flex items-center justify-between" style={{ marginBottom: "12px" }}>
+								<span className="font-semibold" style={{ fontSize: "14px", color: "#a8a8a8" }}>
+									Suggested for you
+								</span>
+								<button className="font-semibold text-white hover:text-white/70 transition-colors"
+									style={{ fontSize: "12px", background: "none", border: "none", cursor: "pointer" }}>
+									See All
+								</button>
+							</div>
+
+							<SuggestedUserRow name="JavaScript Dev" handle="jsdev" />
+							<SuggestedUserRow name="React Learner" handle="react_fan" />
+							<SuggestedUserRow name="Node.js Builder" handle="nodebuilder" />
+							<SuggestedUserRow name="CSS Wizard" handle="csswiz" />
+
+							<p className="mt-8" style={{ fontSize: "11px", color: "#525252", lineHeight: "1.7" }}>
+								About · Help · Privacy · Terms
+								<br /><br />
+								© 2026 SOCIAL LEARNING
+							</p>
 						</div>
-					</div>
-				</aside>
+					</aside>
+				</div>
 			</div>
 		</div>
 	);
@@ -98,10 +157,16 @@ function FeedView({ user }) {
 
 export default function HomePage() {
 	const user = useSelector(selectCurrentUser);
-	return (
-		<div className="min-h-screen bg-[#050816] text-white">
-			<Navbar />
-			{user ? <FeedView user={user} /> : <LandingView />}
-		</div>
-	);
+	const [composerOpen, setComposerOpen] = useState(false);
+
+	if (!user) {
+		return (
+			<div style={{ background: "#000" }}>
+				<Navbar />
+				<LandingView />
+			</div>
+		);
+	}
+
+	return <FeedView user={user} composerOpen={composerOpen} setComposerOpen={setComposerOpen} />;
 }

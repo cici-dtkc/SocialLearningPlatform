@@ -19,18 +19,23 @@ const buildAuthorPopulation = () => ({
     select: "username fullName avatar role",
 });
 
-export const getPosts = async ({ page = 1, limit = 10 } = {}) => {
+export const getPosts = async ({ page = 1, limit = 10, authorId } = {}) => {
     const currentPage = Math.max(Number(page) || 1, 1);
     const pageSize = Math.min(Math.max(Number(limit) || 10, 1), 50);
     const skip = (currentPage - 1) * pageSize;
 
+    const filter = {};
+    if (authorId && mongoose.Types.ObjectId.isValid(authorId)) {
+        filter.author = authorId;
+    }
+
     const [posts, total] = await Promise.all([
-        Post.find()
+        Post.find(filter)
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(pageSize)
             .populate(buildAuthorPopulation()),
-        Post.countDocuments(),
+        Post.countDocuments(filter),
     ]);
 
     return {

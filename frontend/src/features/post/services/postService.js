@@ -1,7 +1,9 @@
 import apiClient from "../../../services/http.js";
 
-export const getPostsRequest = async ({ page = 1, limit = 10 } = {}) => {
-	const response = await apiClient.get("/posts", { params: { page, limit } });
+export const getPostsRequest = async ({ page = 1, limit = 10, authorId } = {}) => {
+	const params = { page, limit };
+	if (authorId) params.authorId = authorId;
+	const response = await apiClient.get("/posts", { params });
 	return response.data;
 };
 

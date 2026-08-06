@@ -9,16 +9,16 @@ import Avatar from "../../../components/ui/Avatar.jsx";
 const MAX_FILES = 4;
 const ACCEPT = "image/jpeg,image/png,image/gif,image/webp";
 
-export default function PostComposer() {
+export default function PostComposer({ autoOpen = false, onClose }) {
 	const dispatch = useDispatch();
 	const user = useSelector(selectCurrentUser);
 	const fileRef = useRef(null);
 
-	const [open, setOpen] = useState(false);
+	const [open, setOpen] = useState(autoOpen);
 	const [content, setContent] = useState("");
 	const [tags, setTags] = useState("");
-	const [files, setFiles] = useState([]);       // File objects (preview)
-	const [previews, setPreviews] = useState([]);  // blob URLs
+	const [files, setFiles] = useState([]);       
+	const [previews, setPreviews] = useState([]);   
 	const [uploading, setUploading] = useState(false);
 	const [loading, setLoading] = useState(false);
 
@@ -28,6 +28,7 @@ export default function PostComposer() {
 		setTags("");
 		setFiles([]);
 		setPreviews((prev) => { prev.forEach(URL.revokeObjectURL); return []; });
+		onClose?.();
 	};
 
 	const handleFiles = (selected) => {
@@ -86,7 +87,7 @@ export default function PostComposer() {
 		}
 	};
 
-	/* drag-and-drop */
+ 
 	const handleDrop = (e) => {
 		e.preventDefault();
 		handleFiles(e.dataTransfer.files);
@@ -149,7 +150,6 @@ export default function PostComposer() {
 						</div>
 					)}
 
-					{/* Drop zone (shown when no images yet) */}
 					{previews.length === 0 && (
 						<div
 							onDrop={handleDrop}
@@ -173,7 +173,6 @@ export default function PostComposer() {
 						onChange={(e) => handleFiles(e.target.files)}
 					/>
 
-					{/* Tags */}
 					<div className="flex items-center gap-2">
 						<span className="text-xs text-neutral-500">#</span>
 						<input
@@ -185,7 +184,6 @@ export default function PostComposer() {
 						/>
 					</div>
 
-					{/* Footer */}
 					<div className="flex items-center justify-between">
 						<span className="text-xs text-neutral-500">{content.length}/5000</span>
 						<div className="flex gap-2">
