@@ -8,6 +8,8 @@ import HomePage from "./pages/Home.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import ProfilePage from "./features/user/pages/ProfilePage.jsx";
 import PublicProfilePage from "./features/user/pages/PublicProfilePage.jsx";
+import GroupListPage from "./features/group/pages/GroupListPage.jsx";
+import GroupDetailPage from "./features/group/pages/GroupDetailPage.jsx";
 import { loadCurrentUser, selectAuthInitialized } from "./features/auth/authSlice.js";
 
 function AppContent() {
@@ -36,6 +38,8 @@ function AppContent() {
 			<Route path="/" element={<HomePage />} />
 			<Route path="/profile" element={<ProfilePage />} />
 			<Route path="/profile/:userId" element={<PublicProfilePage />} />
+			<Route path="/groups" element={<GroupListPage />} />
+			<Route path="/groups/:id" element={<GroupDetailPage />} />
 			<Route path="*" element={<NotFound />} />
 		</Routes>
 	);
