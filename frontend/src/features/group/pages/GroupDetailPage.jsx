@@ -9,6 +9,7 @@ import {
 	updateGroup, uploadGroupAvatar, uploadGroupCover,
 } from "../groupSlice.js";
 import Sidebar from "../../../components/layout/Sidebar.jsx";
+import PostComposer from "../../post/components/PostComposer.jsx";
 import PostFeed from "../../post/components/PostFeed.jsx";
 
 const ROLE_COLOR = { owner: "#f59e0b", admin: "#a78bfa", moderator: "#34d399", member: "#60a5fa" };
@@ -387,7 +388,12 @@ export default function GroupDetailPage() {
 					{activeTab === "posts" && (
 						<div style={{ maxWidth: 600 }}>
 							{isMember ? (
-								<PostFeed groupId={id} />
+								<>
+									<div style={{ marginBottom: 12 }}>
+										<PostComposer groupId={id} />
+									</div>
+									<PostFeed groupId={id} />
+								</>
 							) : (
 								<div className="text-center py-12" style={{ color: "#737373" }}>
 									<p style={{ fontSize: 15 }}>
