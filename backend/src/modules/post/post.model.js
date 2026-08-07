@@ -41,7 +41,14 @@ const postSchema = new mongoose.Schema(
     commentsCount: {
       type: Number,
       default: 0,
-    }
+    },
+
+    // null = personal feed post, ObjectId = group post
+    group: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Group",
+      default: null,
+    },
   },
   {
     timestamps: true,

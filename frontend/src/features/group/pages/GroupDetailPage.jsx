@@ -4,8 +4,8 @@ import { useDispatch, useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { selectCurrentUser } from "../../auth/authSlice.js";
 import {
-	changeMemberRole, clearCurrentGroup, deleteGroup, fetchGroupById,
-	fetchGroupMembers, joinGroup, kickMember, leaveGroup,
+	changeMemberRole, deleteGroup, fetchGroupById,
+	fetchGroupMembers, fetchMyGroups, joinGroup, kickMember, leaveGroup,
 	updateGroup, uploadGroupAvatar, uploadGroupCover,
 } from "../groupSlice.js";
 import Sidebar from "../../../components/layout/Sidebar.jsx";
@@ -159,7 +159,7 @@ function MemberRow({ member, myRole, groupId }) {
 							))}
 						</select>
 						<button onClick={handleKick}
-							style={{ background: "none", border: "none", cursor: "pointer",
+							style={{ background: "none", cursor: "pointer",
 								color: "#ed4956", fontSize: 11, padding: "3px 8px",
 								borderRadius: 6, border: "1px solid rgba(237,73,86,0.3)" }}>
 							Remove
@@ -181,21 +181,39 @@ export default function GroupDetailPage() {
 	const status = useSelector((s) => s.group.currentStatus);
 	const members = useSelector((s) => s.group.members);
 	const membersMeta = useSelector((s) => s.group.membersMeta);
+	const myGroups = useSelector((s) => s.group.myGroups);
 	const [activeTab, setActiveTab] = useState("posts");
 	const [showEdit, setShowEdit] = useState(false);
+	const fetchedGroupIdRef = useRef(null);
+	const fetchedMembersForGroupRef = useRef(null);
 
 	useEffect(() => {
+		if (fetchedGroupIdRef.current === id) return;
+		fetchedGroupIdRef.current = id;
+		fetchedMembersForGroupRef.current = null;
 		dispatch(fetchGroupById(id));
-		dispatch(fetchGroupMembers({ id, params: { page: 1, limit: 20 } }));
-		return () => dispatch(clearCurrentGroup());
 	}, [id, dispatch]);
 
+	useEffect(() => {
+		if (!currentUser) return;
+		dispatch(fetchMyGroups());
+	}, [currentUser, dispatch]);
+
+	useEffect(() => {
+		if (activeTab !== "members") return;
+		if (fetchedMembersForGroupRef.current === id) return;
+		fetchedMembersForGroupRef.current = id;
+		dispatch(fetchGroupMembers({ id, params: { page: 1, limit: 20 } }));
+	}, [activeTab, id, dispatch]);
+
 	const myRole = group?.myRole;
+	const isMemberFromMyGroups = myGroups.some((g) => g.id === id);
 	const isManager = CAN_MANAGE.includes(myRole);
-	const isMember = !!myRole;
+	const isMember = !!myRole || isMemberFromMyGroups;
 
 	const handleJoin = async () => {
 		if (!currentUser) { toast.error("Sign in to join"); return; }
+		if (isMember) return;
 		const res = await dispatch(joinGroup(id));
 		if (joinGroup.fulfilled.match(res)) toast.success("Joined!");
 		else toast.error(res.payload || "Failed");
@@ -308,16 +326,15 @@ export default function GroupDetailPage() {
 
 						{/* Action buttons */}
 						<div className="flex items-center gap-2 flex-shrink-0">
-							{!currentUser ? null : !isMember ? (
-								group.visibility === "public" && (
-									<button onClick={handleJoin}
-										style={{ background: "#0095f6", border: "none", borderRadius: 8,
-											padding: "8px 18px", fontSize: 14, fontWeight: 600, color: "white", cursor: "pointer" }}>
-										Join
-									</button>
-								)
-							) : (
+							{!currentUser ? null : isMember ? (
 								<>
+									{group.visibility === "public" && (
+										<button disabled
+											style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.2)",
+												borderRadius: 8, padding: "8px 14px", fontSize: 13, color: "#d4d4d4", cursor: "not-allowed" }}>
+											Đã tham gia
+										</button>
+									)}
 									{myRole !== "owner" && (
 										<button onClick={handleLeave}
 											style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)",
@@ -340,6 +357,14 @@ export default function GroupDetailPage() {
 										</button>
 									)}
 								</>
+							) : (
+								group.visibility === "public" && (
+									<button onClick={handleJoin}
+										style={{ background: "#0095f6", border: "none", borderRadius: 8,
+											padding: "8px 18px", fontSize: 14, fontWeight: 600, color: "white", cursor: "pointer" }}>
+										Join
+									</button>
+								)
 							)}
 						</div>
 					</div>

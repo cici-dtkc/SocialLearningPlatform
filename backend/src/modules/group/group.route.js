@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { requireAuth } from "../../middlewares/auth.middleware.js";
+import { optionalAuth, requireAuth } from "../../middlewares/auth.middleware.js";
 import multer from "multer";
 import {
     changeRole,
@@ -44,7 +44,7 @@ const wrapMulter = (field) => (req, res, next) => {
 // Group CRUD  
 router.get("/",           list);
 router.post("/",          requireAuth, createGroupValidation, create);
-router.get("/:id",        detail);
+router.get("/:id",        optionalAuth, detail);
 router.put("/:id",        requireAuth, updateGroupValidation, update);
 router.delete("/:id",     requireAuth, remove);
 

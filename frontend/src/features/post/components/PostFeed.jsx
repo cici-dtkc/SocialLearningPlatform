@@ -3,19 +3,19 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchPosts, fetchMorePosts } from "../postSlice.js";
 import PostCard from "./PostCard.jsx";
 
-export default function PostFeed() {
+export default function PostFeed({ groupId }) {
 	const dispatch = useDispatch();
 	const posts = useSelector((s) => s.post.posts);
 	const status = useSelector((s) => s.post.status);
 	const meta = useSelector((s) => s.post.meta);
 
 	useEffect(() => {
-		dispatch(fetchPosts({ page: 1, limit: 10 }));
-	}, [dispatch]);
+		dispatch(fetchPosts({ page: 1, limit: 10, groupId }));
+	}, [dispatch, groupId]);
 
 	const handleLoadMore = () => {
 		if (meta.page < meta.totalPages) {
-			dispatch(fetchMorePosts({ page: meta.page + 1, limit: meta.limit }));
+			dispatch(fetchMorePosts({ page: meta.page + 1, limit: meta.limit, groupId }));
 		}
 	};
 
@@ -46,7 +46,7 @@ export default function PostFeed() {
 			<div className="rounded-xl border border-red-500/20 bg-red-500/5 p-6 text-center">
 				<p className="text-sm text-red-400">Failed to load posts.</p>
 				<button
-					onClick={() => dispatch(fetchPosts({ page: 1, limit: 10 }))}
+					onClick={() => dispatch(fetchPosts({ page: 1, limit: 10, groupId }))}
 					className="mt-2 text-xs text-sky-400 hover:underline"
 				>
 					Try again

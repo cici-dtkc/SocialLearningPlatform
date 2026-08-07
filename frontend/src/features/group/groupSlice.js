@@ -149,9 +149,17 @@ const groupSlice = createSlice({
                 if (state.current?.id === updated.id) state.current = updated;
             })
             .addCase(joinGroup.fulfilled, (state, action) => {
+                const joinedGroupId = action.payload.id;
                 if (state.current?.id === action.payload.id) {
                     state.current.myRole = action.payload.role ?? "member";
-                    state.current.membersCount += 1;
+                    if (!action.payload.alreadyMember) {
+                        state.current.membersCount += 1;
+                    }
+                }
+
+                const alreadyInMyGroups = state.myGroups.some((g) => g.id === joinedGroupId);
+                if (!alreadyInMyGroups && state.current?.id === joinedGroupId) {
+                    state.myGroups.unshift({ ...state.current, myRole: action.payload.role ?? "member" });
                 }
             })
             .addCase(leaveGroup.fulfilled, (state, action) => {
