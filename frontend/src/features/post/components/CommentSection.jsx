@@ -15,14 +15,13 @@ import Avatar from "../../../components/ui/Avatar.jsx";
 
 dayjs.extend(relativeTime);
 
-/* ── Heart icon ── */
+//  Heart icon  
 const HeartIcon = ({ filled }) => (
 	<svg className="h-3 w-3" fill={filled ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
 		<path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
 	</svg>
 );
 
-/* ── Single comment item ── */
 function CommentItem({ comment, postId, currentUser, onReply }) {
 	const dispatch = useDispatch();
 	const liked = useSelector((s) => !!s.post.likedCommentIds[comment.id]);
@@ -103,7 +102,6 @@ function CommentItem({ comment, postId, currentUser, onReply }) {
 					)}
 				</div>
 
-				{/* Action row */}
 				{!editing && (
 					<div className="mt-1 flex items-center gap-3 pl-1">
 						{/* Like */}
@@ -149,7 +147,7 @@ function CommentItem({ comment, postId, currentUser, onReply }) {
 	);
 }
 
-/* ── Comment section ── */
+//   Comment section  
 export default function CommentSection({ postId }) {
 	const dispatch = useDispatch();
 	const currentUser = useSelector(selectCurrentUser);

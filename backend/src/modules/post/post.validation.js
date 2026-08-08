@@ -16,6 +16,9 @@ export const createPostValidation = [
     body("visibility")
         .optional()
         .isIn(visibilityValues).withMessage("Visibility must be public or private"),
+    body("groupId")
+        .optional()
+        .isMongoId().withMessage("Invalid group ID"),
 ];
 
 export const updatePostValidation = [

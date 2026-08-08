@@ -9,7 +9,7 @@ import Avatar from "../../../components/ui/Avatar.jsx";
 const MAX_FILES = 4;
 const ACCEPT = "image/jpeg,image/png,image/gif,image/webp";
 
-export default function PostComposer({ autoOpen = false, onClose }) {
+export default function PostComposer({ autoOpen = false, onClose, groupId = null }) {
 	const dispatch = useDispatch();
 	const user = useSelector(selectCurrentUser);
 	const fileRef = useRef(null);
@@ -76,6 +76,7 @@ export default function PostComposer({ autoOpen = false, onClose }) {
 			content: content.trim(),
 			tags: tagsArray,
 			images: imageUrls,
+			groupId,
 		}));
 
 		setLoading(false);

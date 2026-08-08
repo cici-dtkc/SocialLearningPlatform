@@ -8,6 +8,7 @@ const sanitizePost = (post) => ({
     images: post.images,
     tags: post.tags,
     visibility: post.visibility,
+    group: post.group ?? null,
     likesCount: post.likesCount,
     commentsCount: post.commentsCount,
     createdAt: post.createdAt,
@@ -19,7 +20,7 @@ const buildAuthorPopulation = () => ({
     select: "username fullName avatar role",
 });
 
-export const getPosts = async ({ page = 1, limit = 10, authorId } = {}) => {
+export const getPosts = async ({ page = 1, limit = 10, authorId, groupId } = {}) => {
     const currentPage = Math.max(Number(page) || 1, 1);
     const pageSize = Math.min(Math.max(Number(limit) || 10, 1), 50);
     const skip = (currentPage - 1) * pageSize;
@@ -27,6 +28,12 @@ export const getPosts = async ({ page = 1, limit = 10, authorId } = {}) => {
     const filter = {};
     if (authorId && mongoose.Types.ObjectId.isValid(authorId)) {
         filter.author = authorId;
+    }
+    if (groupId && mongoose.Types.ObjectId.isValid(groupId)) {
+        filter.group = groupId;
+    } else if (!authorId) {
+        // Personal feed: only posts with no group
+        filter.group = null;
     }
 
     const [posts, total] = await Promise.all([
@@ -68,13 +75,35 @@ export const getPostById = async (postId) => {
 };
 
 export const createPost = async (authorId, payload) => {
+    // Validate group membership if posting to a group
+    if (payload.groupId) {
+        const GroupMember = (await import("../group/groupMember.model.js")).default;
+        const membership = await GroupMember.findOne({
+            group: payload.groupId,
+            user: authorId,
+            banned: false,
+        });
+        if (!membership) {
+            const error = new Error("You must be a member of this group to post");
+            error.statusCode = 403;
+            throw error;
+        }
+    }
+
     const createdPost = await Post.create({
         author: authorId,
         content: payload.content,
         images: Array.isArray(payload.images) ? payload.images : [],
         tags: Array.isArray(payload.tags) ? payload.tags : [],
         visibility: payload.visibility || "public",
+        group: payload.groupId ?? null,
     });
+
+    // Increment group postsCount
+    if (payload.groupId) {
+        const Group = (await import("../group/group.model.js")).default;
+        await Group.findByIdAndUpdate(payload.groupId, { $inc: { postsCount: 1 } });
+    }
 
     const populatedPost = await Post.findById(createdPost._id).populate(buildAuthorPopulation());
 

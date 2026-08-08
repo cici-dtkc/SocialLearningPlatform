@@ -48,3 +48,24 @@ export const requireAuth = async (req, res, next) => {
 		});
 	}
 };
+
+export const optionalAuth = async (req, _res, next) => {
+	try {
+		const token = getTokenFromRequest(req);
+
+		if (!token) return next();
+
+		const decoded = verifyAccessToken(token);
+		const userId = decoded.userId;
+		if (!userId) return next();
+
+		const user = await User.findById(userId).select("-password");
+		if (!user) return next();
+
+		req.user = user;
+		req.userId = user._id;
+		return next();
+	} catch {
+		return next();
+	}
+};
