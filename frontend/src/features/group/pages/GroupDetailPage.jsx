@@ -15,6 +15,7 @@ import { addGroupMemberRequest, searchGroupUsersRequest } from "../services/grou
 
 const ROLE_COLOR = { owner: "#f59e0b", admin: "#a78bfa", moderator: "#34d399", member: "#60a5fa" };
 const CAN_MANAGE = ["owner", "admin"];
+const CAN_ADD_MEMBERS = ["owner", "admin", "moderator"];
 
 // Image uploader button  
 function ImgUploader({ label, onFile }) {
@@ -186,6 +187,7 @@ export default function GroupDetailPage() {
 	const myGroups = useSelector((s) => s.group.myGroups);
 	const [activeTab, setActiveTab] = useState("posts");
 	const [showEdit, setShowEdit] = useState(false);
+	const [postSearch, setPostSearch] = useState("");
 	const [memberSearch, setMemberSearch] = useState("");
 	const [memberSearchResults, setMemberSearchResults] = useState([]);
 	const [memberSearchLoading, setMemberSearchLoading] = useState(false);
@@ -214,6 +216,7 @@ export default function GroupDetailPage() {
 	const myRole = group?.myRole;
 	const isMemberFromMyGroups = myGroups.some((g) => g.id === id);
 	const isManager = CAN_MANAGE.includes(myRole);
+	const canAddMembers = CAN_ADD_MEMBERS.includes(myRole);
 	const isMember = !!myRole || isMemberFromMyGroups;
 
 	const handleJoin = async () => {
@@ -429,12 +432,34 @@ export default function GroupDetailPage() {
 
 					{activeTab === "posts" && (
 						<div style={{ maxWidth: 600 }}>
+							<div className="mb-4 rounded-2xl " style={{ background: "rgba(255,255,255,0.03)" }}>
+								<div className="mt-2">
+									<div style={{ position: "relative" }}>
+										<input
+											value={postSearch}
+											onChange={(e) => setPostSearch(e.target.value)}
+											placeholder="Search posts"
+											style={{ width: "100%", background: "#111", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "8px 36px 8px 10px", color: "white" }}
+										/>
+										{postSearch ? (
+											<button
+												type="button"
+												onClick={() => setPostSearch("")}
+												style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "transparent", border: "none", color: "#a8a8a8", cursor: "pointer", fontSize: 14 }}
+												aria-label="Clear search"
+											>
+												✕
+											</button>
+										) : null}
+									</div>
+								</div>
+							</div>
 							{isMember ? (
 								<>
 									<div style={{ marginBottom: 12 }}>
 										<PostComposer groupId={id} />
 									</div>
-									<PostFeed groupId={id} />
+									<PostFeed groupId={id} searchTerm={postSearch} />
 								</>
 							) : (
 								<div className="text-center py-12" style={{ color: "#737373" }}>
@@ -460,7 +485,7 @@ export default function GroupDetailPage() {
 							<p style={{ fontSize: 13, color: "#737373", marginBottom: 12 }}>
 								{membersMeta.total} member{membersMeta.total !== 1 ? "s" : ""}
 							</p>
-							{isManager && (
+							{canAddMembers && (
 								<div className="mb-4 rounded-2xl border border-white/10 p-3" style={{ background: "rgba(255,255,255,0.03)" }}>
 									<div className="mb-2">
 										<p className="text-sm font-medium text-white">Add members</p>
@@ -504,7 +529,7 @@ export default function GroupDetailPage() {
 									))}
 								</div>
 							)}
-							{memberSearch && !memberSearchLoading && memberSearchResults.length === 0 && isManager && (
+							{memberSearch && !memberSearchLoading && memberSearchResults.length === 0 && canAddMembers && (
 								<p className="mb-4 text-sm text-neutral-400">No matching users found.</p>
 							)}
 							{members.map((m) => (

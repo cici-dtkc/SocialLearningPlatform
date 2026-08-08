@@ -3,11 +3,26 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchPosts, fetchMorePosts } from "../postSlice.js";
 import PostCard from "./PostCard.jsx";
 
-export default function PostFeed({ groupId }) {
+export default function PostFeed({ groupId, searchTerm = "" }) {
 	const dispatch = useDispatch();
 	const posts = useSelector((s) => s.post.posts);
 	const status = useSelector((s) => s.post.status);
 	const meta = useSelector((s) => s.post.meta);
+	const normalizedQuery = searchTerm.trim().toLowerCase();
+	const filteredPosts = normalizedQuery
+		? posts.filter((post) => {
+			const haystack = [
+				post.content,
+				post.author?.username,
+				post.author?.fullName,
+				post.tags?.join(" "),
+			]
+				.filter(Boolean)
+				.join(" ")
+				.toLowerCase();
+			return haystack.includes(normalizedQuery);
+		})
+		: posts;
 
 	useEffect(() => {
 		dispatch(fetchPosts({ page: 1, limit: 10, groupId }));
@@ -63,9 +78,17 @@ export default function PostFeed({ groupId }) {
 		);
 	}
 
+	if (normalizedQuery && filteredPosts.length === 0) {
+		return (
+			<div className="rounded-xl border border-white/8 bg-white/3 p-8 text-center">
+				<p className="text-sm text-neutral-400">No posts match your search.</p>
+			</div>
+		);
+	}
+
 	return (
 		<div className="space-y-3">
-			{posts.map((post) => (
+			{filteredPosts.map((post) => (
 				<PostCard key={post.id} post={post} />
 			))}
 
