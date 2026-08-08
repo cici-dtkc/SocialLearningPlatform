@@ -1,6 +1,7 @@
 import { validationResult } from "express-validator";
 import { uploadBufferAsImage } from "../../config/cloudinary.js";
 import {
+    addMemberToGroup,
     changeMemberRole,
     createGroup,
     deleteGroup,
@@ -11,6 +12,7 @@ import {
     joinGroup,
     leaveGroup,
     removeMember,
+    searchUsersForGroup,
     updateGroup,
 } from "./group.service.js";
 
@@ -121,6 +123,24 @@ export const members = async (req, res) => {
     try {
         const result = await getMembers(req.params.id, req.query);
         return res.status(200).json({ message: "Get members successfully", ...result });
+    } catch (e) {
+        return res.status(e.statusCode || 500).json({ message: e.message });
+    }
+};
+
+export const searchUsers = async (req, res) => {
+    try {
+        const result = await searchUsersForGroup(req.params.id, req.userId, req.query);
+        return res.status(200).json({ message: "Search users successfully", ...result });
+    } catch (e) {
+        return res.status(e.statusCode || 500).json({ message: e.message });
+    }
+};
+
+export const addMember = async (req, res) => {
+    try {
+        const result = await addMemberToGroup(req.params.id, req.userId, req.body.userId);
+        return res.status(200).json({ message: "User added to group successfully", data: result });
     } catch (e) {
         return res.status(e.statusCode || 500).json({ message: e.message });
     }

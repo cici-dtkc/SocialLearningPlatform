@@ -11,6 +11,7 @@ import {
 import Sidebar from "../../../components/layout/Sidebar.jsx";
 import PostComposer from "../../post/components/PostComposer.jsx";
 import PostFeed from "../../post/components/PostFeed.jsx";
+import { addGroupMemberRequest, searchGroupUsersRequest } from "../services/groupService.js";
 
 const ROLE_COLOR = { owner: "#f59e0b", admin: "#a78bfa", moderator: "#34d399", member: "#60a5fa" };
 const CAN_MANAGE = ["owner", "admin"];
@@ -185,6 +186,9 @@ export default function GroupDetailPage() {
 	const myGroups = useSelector((s) => s.group.myGroups);
 	const [activeTab, setActiveTab] = useState("posts");
 	const [showEdit, setShowEdit] = useState(false);
+	const [memberSearch, setMemberSearch] = useState("");
+	const [memberSearchResults, setMemberSearchResults] = useState([]);
+	const [memberSearchLoading, setMemberSearchLoading] = useState(false);
 	const fetchedGroupIdRef = useRef(null);
 	const fetchedMembersForGroupRef = useRef(null);
 
@@ -244,6 +248,44 @@ export default function GroupDetailPage() {
 		const res = await dispatch(uploadGroupCover({ id, file }));
 		if (uploadGroupCover.fulfilled.match(res)) toast.success("Cover updated!");
 		else toast.error(res.payload || "Upload failed");
+	};
+
+	const handleMemberSearch = async (e) => {
+		e.preventDefault();
+		const query = memberSearch.trim();
+		if (!query) {
+			setMemberSearchResults([]);
+			return;
+		}
+
+		setMemberSearchLoading(true);
+		try {
+			const res = await searchGroupUsersRequest(id, { query, limit: 8 });
+			setMemberSearchResults(res.data || []);
+		} catch (error) {
+			toast.error(error?.response?.data?.message || "Search failed");
+			setMemberSearchResults([]);
+		} finally {
+			setMemberSearchLoading(false);
+		}
+	};
+
+	const handleMemberSearchInput = (e) => {
+		const value = e.target.value;
+		setMemberSearch(value);
+		if (!value.trim()) setMemberSearchResults([]);
+	};
+
+	const handleAddMember = async (userId) => {
+		try {
+			await addGroupMemberRequest(id, userId);
+			toast.success("User added to group");
+			setMemberSearchResults((prev) => prev.filter((user) => user.id !== userId));
+			dispatch(fetchGroupMembers({ id, params: { page: 1, limit: 20 } }));
+			dispatch(fetchGroupById(id));
+		} catch (error) {
+			toast.error(error?.response?.data?.message || "Could not add user");
+		}
 	};
 
 	if (status === "loading" || !group) {
@@ -418,6 +460,53 @@ export default function GroupDetailPage() {
 							<p style={{ fontSize: 13, color: "#737373", marginBottom: 12 }}>
 								{membersMeta.total} member{membersMeta.total !== 1 ? "s" : ""}
 							</p>
+							{isManager && (
+								<div className="mb-4 rounded-2xl border border-white/10 p-3" style={{ background: "rgba(255,255,255,0.03)" }}>
+									<div className="mb-2">
+										<p className="text-sm font-medium text-white">Add members</p>
+										<p className="text-xs text-neutral-400">Search by username, full name, or email.</p>
+									</div>
+									<form onSubmit={handleMemberSearch} className="flex gap-2">
+										<input
+											value={memberSearch}
+											onChange={handleMemberSearchInput}
+											placeholder="Search people"
+											style={{ flex: 1, background: "#111", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, padding: "8px 10px", color: "white" }}
+										/>
+										<button type="submit" disabled={memberSearchLoading}
+											style={{ background: "#0095f6", border: "none", borderRadius: 8, padding: "8px 12px", color: "white", cursor: "pointer", opacity: memberSearchLoading ? 0.7 : 1 }}>
+											{memberSearchLoading ? "Searching..." : "Search"}
+										</button>
+									</form>
+								</div>
+							)}
+							{memberSearchResults.length > 0 && (
+								<div className="mb-4 rounded-xl border border-white/10 p-3" style={{ background: "rgba(255,255,255,0.03)" }}>
+									{memberSearchResults.map((user) => (
+										<div key={user.id} className="flex items-center justify-between py-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+											<div className="flex items-center gap-2">
+												{user.avatar ? (
+													<img src={user.avatar} alt={user.username} style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }} />
+												) : (
+													<div className="flex items-center justify-center font-bold" style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,#38bdf8,#a855f7)", color: "#0a0a0a", fontSize: 12 }}>
+														{user.username?.[0]?.toUpperCase()}
+													</div>
+												)}
+												<div>
+													<p className="text-sm text-white">{user.username}</p>
+													<p className="text-xs text-neutral-400">{user.fullName || ""}</p>
+												</div>
+											</div>
+											<button onClick={() => handleAddMember(user.id)} style={{ background: "rgba(52,211,153,0.15)", border: "1px solid rgba(52,211,153,0.3)", borderRadius: 8, padding: "6px 10px", color: "#34d399", cursor: "pointer", fontSize: 12 }}>
+												Add
+											</button>
+										</div>
+									))}
+								</div>
+							)}
+							{memberSearch && !memberSearchLoading && memberSearchResults.length === 0 && isManager && (
+								<p className="mb-4 text-sm text-neutral-400">No matching users found.</p>
+							)}
 							{members.map((m) => (
 								<MemberRow key={m.userId} member={m} myRole={myRole} groupId={id} />
 							))}

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { optionalAuth, requireAuth } from "../../middlewares/auth.middleware.js";
 import multer from "multer";
 import {
+    addMember,
     changeRole,
     create,
     detail,
@@ -12,6 +13,7 @@ import {
     members,
     myGroups,
     remove,
+    searchUsers,
     update,
     uploadAvatar,
     uploadCover,
@@ -45,6 +47,8 @@ const wrapMulter = (field) => (req, res, next) => {
 router.get("/",           list);
 router.post("/",          requireAuth, createGroupValidation, create);
 router.get("/:id",        optionalAuth, detail);
+router.get("/:id/search-users", requireAuth, searchUsers);
+router.post("/:id/members", requireAuth, addMember);
 router.put("/:id",        requireAuth, updateGroupValidation, update);
 router.delete("/:id",     requireAuth, remove);
 

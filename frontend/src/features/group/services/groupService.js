@@ -43,6 +43,12 @@ export const leaveGroupRequest = (id) =>
 export const getGroupMembersRequest = (id, { page = 1, limit = 20 } = {}) =>
     apiClient.get(`/groups/${id}/members`, { params: { page, limit } }).then((r) => r.data);
 
+export const searchGroupUsersRequest = (id, { query = "", limit = 10 } = {}) =>
+    apiClient.get(`/groups/${id}/search-users`, { params: { query, limit } }).then((r) => r.data);
+
+export const addGroupMemberRequest = (id, userId) =>
+    apiClient.post(`/groups/${id}/members`, { userId }).then((r) => r.data);
+
 export const getMyGroupsRequest = () =>
     apiClient.get("/users/me/groups").then((r) => r.data);
 

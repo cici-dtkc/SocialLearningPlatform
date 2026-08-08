@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Group from "./group.model.js";
 import GroupMember, { GROUP_ROLES } from "./groupMember.model.js";
+import User from "../user/user.model.js";
 
  
 const sanitizeGroup = (g, myRole = null) => ({
@@ -36,6 +37,8 @@ const requireRole = (currentRole, allowedRoles) => {
         e.statusCode = 403; throw e;
     }
 };
+
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const getMembership = (groupId, userId) =>
     GroupMember.findOne({ group: groupId, user: userId });
@@ -174,6 +177,73 @@ export const leaveGroup = async (groupId, userId) => {
     await Group.findByIdAndUpdate(groupId, { $inc: { membersCount: -1 } });
 
     return { left: true };
+};
+
+export const searchUsersForGroup = async (groupId, requesterId, { query = "", limit = 10 } = {}) => {
+    await ensureGroup(groupId);
+
+    const requesterMembership = await getMembership(groupId, requesterId);
+    requireRole(requesterMembership?.role, ["owner", "admin", "moderator"]);
+
+    const searchTerm = String(query || "").trim();
+    if (!searchTerm) {
+        return { data: [], meta: { page: 1, limit: 10, total: 0, totalPages: 1 } };
+    }
+
+    const existingMembers = await GroupMember.find({ group: groupId, banned: false }).select("user");
+    const excludedUserIds = existingMembers.map((member) => member.user);
+    const pageSize = Math.min(Math.max(Number(limit) || 10, 1), 20);
+    const regex = new RegExp(escapeRegExp(searchTerm), "i");
+
+    const [users, total] = await Promise.all([
+        User.find({
+            _id: { $nin: excludedUserIds },
+            $or: [{ username: regex }, { fullName: regex }, { email: regex }],
+        })
+            .select("username fullName avatar role")
+            .limit(pageSize)
+            .lean(),
+        User.countDocuments({
+            _id: { $nin: excludedUserIds },
+            $or: [{ username: regex }, { fullName: regex }, { email: regex }],
+        }),
+    ]);
+
+    return {
+        data: users.map((user) => ({
+            id: user._id,
+            username: user.username,
+            fullName: user.fullName,
+            avatar: user.avatar,
+            role: user.role,
+        })),
+        meta: { page: 1, limit: pageSize, total, totalPages: Math.ceil(total / pageSize) || 1 },
+    };
+};
+
+export const addMemberToGroup = async (groupId, requesterId, targetUserId) => {
+    await ensureGroup(groupId);
+
+    const requesterMembership = await getMembership(groupId, requesterId);
+    requireRole(requesterMembership?.role, ["owner", "admin", "moderator"]);
+
+    const targetUser = await User.findById(targetUserId);
+    if (!targetUser) {
+        const e = new Error("User not found"); e.statusCode = 404; throw e;
+    }
+
+    const existingMembership = await getMembership(groupId, targetUserId);
+    if (existingMembership) {
+        if (existingMembership.banned) {
+            const e = new Error("User is banned from this group"); e.statusCode = 403; throw e;
+        }
+        return { alreadyMember: true, role: existingMembership.role, userId: targetUserId };
+    }
+
+    await GroupMember.create({ group: groupId, user: targetUserId, role: "member" });
+    await Group.findByIdAndUpdate(groupId, { $inc: { membersCount: 1 } });
+
+    return { added: true, userId: targetUserId, role: "member" };
 };
 
 export const getMembers = async (groupId, { page = 1, limit = 20 } = {}) => {
