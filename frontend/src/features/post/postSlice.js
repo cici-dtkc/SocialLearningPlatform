@@ -6,6 +6,7 @@ import {
 	deleteCommentRequest,
 	deletePostRequest,
 	getCommentsRequest,
+	getPostLikesRequest,
 	getPostsRequest,
 	likeCommentRequest,
 	likePostRequest,
@@ -64,6 +65,15 @@ export const deletePost = createAsyncThunk("post/deletePost", async (id, { rejec
 	try {
 		await deletePostRequest(id);
 		return id;
+	} catch (error) {
+		return rejectWithValue(extractErrorMessage(error));
+	}
+});
+
+export const fetchPostLikes = createAsyncThunk("post/fetchPostLikes", async (postId, { rejectWithValue }) => {
+	try {
+		const response = await getPostLikesRequest(postId);
+		return { postId, ...response };
 	} catch (error) {
 		return rejectWithValue(extractErrorMessage(error));
 	}
@@ -140,6 +150,7 @@ const postSlice = createSlice({
 		status: "idle",
 		likedPostIds: {},
 		likedCommentIds: {},
+		postLikes: {},
 		comments: {},
 		commentStatus: {},
 		// user-specific posts (for profile page)
@@ -227,6 +238,27 @@ const postSlice = createSlice({
 					post.likesCount += liked ? 1 : -1;
 					state.likedPostIds[id] = liked;
 				}
+			})
+			// fetch post likes
+			.addCase(fetchPostLikes.pending, (state, action) => {
+				state.postLikes[action.meta.arg] = {
+					...(state.postLikes[action.meta.arg] || {}),
+					status: "loading",
+				};
+			})
+			.addCase(fetchPostLikes.fulfilled, (state, action) => {
+				state.postLikes[action.payload.postId] = {
+					status: "succeeded",
+					count: action.payload.count,
+					users: action.payload.users,
+				};
+			})
+			.addCase(fetchPostLikes.rejected, (state, action) => {
+				state.postLikes[action.meta.arg] = {
+					...(state.postLikes[action.meta.arg] || {}),
+					status: "failed",
+					error: action.payload,
+				};
 			})
 			// fetch comments
 			.addCase(fetchComments.pending, (state, action) => {
