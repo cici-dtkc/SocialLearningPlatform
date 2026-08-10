@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime.js";
 import toast from "react-hot-toast";
 import { selectCurrentUser } from "../../auth/authSlice.js";
-import { createComment, deletePost, toggleLike, updatePost } from "../postSlice.js";
+import { createComment, deletePost, fetchPostLikes, toggleLike, updatePost } from "../postSlice.js";
 import CommentSection from "./CommentSection.jsx";
 
 dayjs.extend(relativeTime);
@@ -58,7 +58,9 @@ export default function PostCard({ post }) {
 	const dispatch = useDispatch();
 	const currentUser = useSelector(selectCurrentUser);
 	const liked = useSelector((s) => !!s.post.likedPostIds[post.id]);
+	const postLikes = useSelector((s) => s.post.postLikes[post.id]);
 	const [showComments, setShowComments] = useState(false);
+	const [showLikers, setShowLikers] = useState(false);
 	const [editing, setEditing] = useState(false);
 	const [editContent, setEditContent] = useState(post.content);
 	const [editTags, setEditTags] = useState(post.tags?.join(", ") ?? "");
@@ -85,6 +87,14 @@ export default function PostCard({ post }) {
 	const handleLike = () => {
 		if (!currentUser) { toast.error("Sign in to like posts"); return; }
 		dispatch(toggleLike({ id: post.id, liked }));
+	};
+
+	const handleViewLikes = async () => {
+		if (!post.likesCount) return;
+		if (!postLikes?.users) {
+			await dispatch(fetchPostLikes(post.id));
+		}
+		setShowLikers((value) => !value);
 	};
 
 	const handleUpdate = async () => {
@@ -424,9 +434,120 @@ export default function PostCard({ post }) {
 			</div>
 
 			{post.likesCount > 0 && (
-				<p style={{ fontSize: "14px", fontWeight: 600, color: "#ffffff", marginBottom: "4px" }}>
-					{post.likesCount} {post.likesCount === 1 ? "like" : "likes"}
-				</p>
+				<div style={{ marginBottom: "8px" }}>
+					<button
+						onClick={handleViewLikes}
+						style={{
+							background: "none",
+							border: "none",
+							padding: 0,
+							color: "#ffffff",
+							fontSize: "14px",
+							fontWeight: 600,
+							cursor: "pointer",
+							textAlign: "left",
+							display: "inline-flex",
+							alignItems: "center",
+							gap: "6px",
+						}}
+					>
+						<span style={{ color: "#ff3040", fontSize: "15px" }}>♥</span>
+						{postLikes?.status === "loading" ? "Loading likes…" : `${post.likesCount} ${post.likesCount === 1 ? "like" : "likes"}`}
+					</button>
+
+					{showLikers && (
+						<div
+							onClick={() => setShowLikers(false)}
+							style={{
+								position: "fixed",
+								inset: 0,
+								background: "rgba(0,0,0,0.72)",
+								zIndex: 200,
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "center",
+								padding: "20px",
+							}}
+						>
+							<div
+								onClick={(e) => e.stopPropagation()}
+								style={{
+									width: "100%",
+									maxWidth: 460,
+									maxHeight: "80vh",
+									overflow: "hidden",
+									borderRadius: "16px",
+									background: "#1c1e21",
+									border: "1px solid rgba(255,255,255,0.12)",
+									boxShadow: "0 20px 60px rgba(0,0,0,0.45)",
+								}}
+							>
+								<div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px", borderBottom: "1px solid rgba(255,255,255,0.10)" }}>
+									<div>
+										<p style={{ margin: 0, fontSize: "16px", fontWeight: 700, color: "#ffffff" }}>People who liked this post</p>
+										<p style={{ margin: "3px 0 0", fontSize: "12px", color: "#a8a8a8" }}>
+											{post.likesCount} {post.likesCount === 1 ? "person" : "people"} reacted
+										</p>
+									</div>
+									<button
+										onClick={() => setShowLikers(false)}
+										style={{
+											background: "rgba(255,255,255,0.08)",
+											border: "none",
+											borderRadius: "50%",
+											width: 32,
+											height: 32,
+											color: "#ffffff",
+											fontSize: 16,
+											cursor: "pointer",
+										}}
+									>
+										✕
+									</button>
+								</div>
+
+								<div style={{ padding: "10px 8px 12px", maxHeight: "calc(80vh - 72px)", overflowY: "auto" }}>
+									{postLikes?.status === "loading" ? (
+										<div style={{ padding: "20px 12px", textAlign: "center", color: "#a8a8a8" }}>Loading likes…</div>
+									) : postLikes?.users?.length ? (
+										<div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+											{postLikes.users.map((user) => (
+												<Link
+													key={user.id}
+													to={`/profile/${user.id}`}
+													style={{
+														display: "flex",
+														alignItems: "center",
+														gap: "10px",
+														padding: "10px 12px",
+														borderRadius: "12px",
+														background: "rgba(255,255,255,0.04)",
+														color: "#f3f4f6",
+														textDecoration: "none",
+													}}
+												>
+													{user.avatar ? (
+														<img src={user.avatar} alt={user.username} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }} />
+													) : (
+														<div style={{ width: 36, height: 36, borderRadius: "50%", background: "linear-gradient(135deg, #38bdf8, #a855f7)", color: "#0a0a0a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700 }}>
+															{user.username?.[0]?.toUpperCase() ?? "?"}
+														</div>
+													)}
+													<div>
+														<p style={{ margin: 0, fontSize: "14px", fontWeight: 600 }}>{user.username || user.fullName || "Unknown user"}</p>
+														<p style={{ margin: "2px 0 0", fontSize: "12px", color: "#9ca3af" }}>View profile</p>
+													</div>
+												</Link>
+											))}
+										</div>
+									) : (
+										<div style={{ padding: "22px 12px", textAlign: "center", color: "#a8a8a8" }}>No one has liked this post yet.</div>
+									)}
+								</div>
+							</div>
+						</div>
+					)}
+				</div>
 			)}
 
 			{!editing && (

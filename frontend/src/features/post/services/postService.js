@@ -57,6 +57,11 @@ export const deleteCommentRequest = async (id) => {
 };
 
 // Likes
+export const getPostLikesRequest = async (id) => {
+	const response = await apiClient.get(`/posts/${id}/likes`);
+	return response.data.data;
+};
+
 export const likePostRequest = async (id) => {
 	const response = await apiClient.post(`/posts/${id}/like`);
 	return response.data;

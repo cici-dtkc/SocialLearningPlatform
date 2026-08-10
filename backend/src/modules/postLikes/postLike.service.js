@@ -20,6 +20,28 @@ const ensurePostExists = async (postId) => {
     return post;
 };
 
+export const getPostLikes = async (postId) => {
+    await ensurePostExists(postId);
+
+    const likes = await PostLike.find({ post: postId })
+        .populate({
+            path: "user",
+            select: "id username fullName avatar",
+        })
+        .sort({ createdAt: -1 });
+
+    return {
+        postId,
+        count: likes.length,
+        users: likes.map((like) => ({
+            id: like.user?._id ?? like.user?.id,
+            username: like.user?.username,
+            fullName: like.user?.fullName,
+            avatar: like.user?.avatar,
+        })),
+    };
+};
+
 export const likePost = async (postId, userId) => {
     await ensurePostExists(postId);
 
