@@ -13,6 +13,29 @@ const sanitizeUser = (user) => ({
     updatedAt: user.updatedAt,
 });
 
+export const getUsers = async ({ page = 1, limit = 10, search } = {}) => {
+    const currentPage = Math.max(Number(page) || 1, 1);
+    const pageSize = Math.min(Math.max(Number(limit) || 10, 1), 50);
+    const skip = (currentPage - 1) * pageSize;
+
+    const filter = {};
+    const searchTerm = String(search || "").trim();
+    if (searchTerm) {
+        const regex = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+        filter.$or = [{ username: regex }, { fullName: regex }, { email: regex }];
+    }
+
+    const [users, total] = await Promise.all([
+        User.find(filter).sort({ createdAt: -1 }).skip(skip).limit(pageSize).select("username fullName avatar role createdAt"),
+        User.countDocuments(filter),
+    ]);
+
+    return {
+        data: users.map(sanitizeUser),
+        meta: { page: currentPage, limit: pageSize, total, totalPages: Math.ceil(total / pageSize) || 1 },
+    };
+};
+
 export const getMe = async (userId) => {
     const user = await User.findById(userId);
     if (!user) {

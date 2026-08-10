@@ -1,10 +1,19 @@
 import { validationResult } from "express-validator";
-import { getMe as getMeService, getUserById as getUserByIdService, updateAvatar as updateAvatarService, updateMe as updateMeService } from "./user.service.js";
+import { getMe as getMeService, getUserById as getUserByIdService, getUsers as getUsersService, updateAvatar as updateAvatarService, updateMe as updateMeService } from "./user.service.js";
 
 export const getMe = async (req, res) => {
     try {
         const user = await getMeService(req.userId);
         return res.status(200).json({ message: "Get current user successfully", data: user });
+    } catch (error) {
+        return res.status(error.statusCode || 500).json({ message: error.message || "Internal Server Error" });
+    }
+};
+
+export const getUsers = async (req, res) => {
+    try {
+        const result = await getUsersService(req.query);
+        return res.status(200).json({ message: "Search users successfully", ...result });
     } catch (error) {
         return res.status(error.statusCode || 500).json({ message: error.message || "Internal Server Error" });
     }
