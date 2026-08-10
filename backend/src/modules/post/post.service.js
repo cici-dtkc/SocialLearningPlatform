@@ -20,7 +20,7 @@ const buildAuthorPopulation = () => ({
     select: "username fullName avatar role",
 });
 
-export const getPosts = async ({ page = 1, limit = 10, authorId, groupId } = {}) => {
+export const getPosts = async ({ page = 1, limit = 10, authorId, groupId, search, tag } = {}) => {
     const currentPage = Math.max(Number(page) || 1, 1);
     const pageSize = Math.min(Math.max(Number(limit) || 10, 1), 50);
     const skip = (currentPage - 1) * pageSize;
@@ -32,8 +32,17 @@ export const getPosts = async ({ page = 1, limit = 10, authorId, groupId } = {})
     if (groupId && mongoose.Types.ObjectId.isValid(groupId)) {
         filter.group = groupId;
     } else if (!authorId) {
-        // Personal feed: only posts with no group
         filter.group = null;
+    }
+
+    const searchTerm = String(search || "").trim();
+    const tagTerm = String(tag || "").trim();
+    if (searchTerm) {
+        const regex = new RegExp(searchTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+        filter.$or = [{ content: regex }, { tags: { $elemMatch: { $regex: regex, $options: "i" } } }];
+    }
+    if (tagTerm) {
+        filter.tags = { $elemMatch: { $regex: new RegExp(tagTerm.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i") } };
     }
 
     const [posts, total] = await Promise.all([
