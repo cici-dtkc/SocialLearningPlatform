@@ -10,6 +10,7 @@ import ProfilePage from "./features/user/pages/ProfilePage.jsx";
 import PublicProfilePage from "./features/user/pages/PublicProfilePage.jsx";
 import GroupListPage from "./features/group/pages/GroupListPage.jsx";
 import GroupDetailPage from "./features/group/pages/GroupDetailPage.jsx";
+import SearchPage from "./features/search/pages/SearchPage.jsx";
 import { loadCurrentUser, selectAuthInitialized } from "./features/auth/authSlice.js";
 
 function AppContent() {
@@ -40,6 +41,7 @@ function AppContent() {
 			<Route path="/profile/:userId" element={<PublicProfilePage />} />
 			<Route path="/groups" element={<GroupListPage />} />
 			<Route path="/groups/:id" element={<GroupDetailPage />} />
+			<Route path="/search" element={<SearchPage />} />
 			<Route path="*" element={<NotFound />} />
 		</Routes>
 	);

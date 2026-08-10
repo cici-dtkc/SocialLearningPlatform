@@ -68,7 +68,16 @@ export const getGroups = async ({ page = 1, limit = 12, search, visibility } = {
     const filter = {};
     if (visibility) filter.visibility = visibility;
     else filter.visibility = "public"; // default to public only
-    if (search) filter.$text = { $search: search };
+
+    const searchTerm = String(search || "").trim();
+    if (searchTerm) {
+        const regex = new RegExp(escapeRegExp(searchTerm), "i");
+        filter.$or = [
+            { name: regex },
+            { description: regex },
+            { tags: { $elemMatch: { $regex: regex, $options: "i" } } },
+        ];
+    }
 
     const [groups, total] = await Promise.all([
         Group.find(filter).sort({ createdAt: -1 }).skip(skip).limit(pageSize).populate(ownerPopulation),
