@@ -94,9 +94,8 @@ export default function PublicProfilePage() {
 	const counts = useSelector((s) => s.user.counts[userId]);
 	const postTotal = useSelector((s) => s.post.userPostsMeta.total);
 
-	const [profileUser, setProfileUser] = useState(null);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState(null);
+	// Merge loading/error/data into one state to avoid multiple setState in effect
+	const [fetchState, setFetchState] = useState({ loading: true, error: null, user: null });
 	const [followModal, setFollowModal] = useState(null);
 
 	// If viewing own profile, redirect to /profile
@@ -108,18 +107,27 @@ export default function PublicProfilePage() {
 
 	useEffect(() => {
 		if (!userId) return;
-		setLoading(true);
+
+		let cancelled = false;
+
 		getUserByIdRequest(userId)
 			.then((res) => {
-				setProfileUser(res.data);
-				setLoading(false);
+				if (!cancelled) {
+					setFetchState({ loading: false, error: null, user: res.data });
+				}
 			})
 			.catch(() => {
-				setError("User not found");
-				setLoading(false);
+				if (!cancelled) {
+					setFetchState({ loading: false, error: "User not found", user: null });
+				}
 			});
+
 		dispatch(fetchFollowCounts(userId));
+
+		return () => { cancelled = true; };
 	}, [userId, dispatch]);
+
+	const { loading, error, user: profileUser } = fetchState;
 
 	if (loading) {
 		return (

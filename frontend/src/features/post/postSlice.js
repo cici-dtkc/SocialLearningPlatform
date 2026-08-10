@@ -205,7 +205,7 @@ const postSlice = createSlice({
 				state.userPostsMeta.total = Math.max(0, state.userPostsMeta.total - 1);
 			})
 			// fetch user posts
-			.addCase(fetchUserPosts.pending, (state, action) => {
+			.addCase(fetchUserPosts.pending, (state) => {
 				state.userPostsStatus = "loading";
 			})
 			.addCase(fetchUserPosts.fulfilled, (state, action) => {

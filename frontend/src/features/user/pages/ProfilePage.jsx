@@ -217,7 +217,7 @@ export default function ProfilePage() {
 	const postTotal = useSelector((s) => s.post.userPostsMeta.total);
 	const [editing, setEditing] = useState(false);
 	const [activeTab, setActiveTab] = useState("posts");
-	const [followModal, setFollowModal] = useState(null); // "followers" | "following" | null
+	const [followModal, setFollowModal] = useState(null);
 
 	useEffect(() => {
 		if (user?.id) dispatch(fetchFollowCounts(user.id));
@@ -238,106 +238,114 @@ export default function ProfilePage() {
 			<div className="flex-1 flex justify-center px-6 py-8">
 				<div className="w-full" style={{ maxWidth: "600px" }}>
 
-				{/* Profile card */}
-				<div className="rounded-xl border border-white/8 bg-white/3 p-6">
-					<div className="flex items-start gap-5">
-						<AvatarUploader user={user} />
+					{/* Profile card */}
+					<div className="rounded-xl border border-white/8 bg-white/3 p-6">
+						<div className="flex items-start gap-5">
+							<AvatarUploader user={user} />
 
-						<div className="flex-1 min-w-0">							<div className="flex items-center gap-2 flex-wrap">
-								<h1 className="text-xl font-semibold">{user.fullName || user.username}</h1>
-								<span className={`rounded-full px-2 py-0.5 text-xs ${
-									user.role === "mentor" ? "bg-violet-500/20 text-violet-300" :
-									user.role === "admin" ? "bg-red-500/20 text-red-300" :
-									"bg-sky-500/20 text-sky-300"
-								}`}>
-									{user.role}
-								</span>
+							<div className="flex-1 min-w-0">
+								<div className="flex items-center gap-2 flex-wrap">
+									<h1 className="text-xl font-semibold">{user.fullName || user.username}</h1>
+									<span className={`rounded-full px-2 py-0.5 text-xs ${
+										user.role === "mentor" ? "bg-violet-500/20 text-violet-300" :
+										user.role === "admin" ? "bg-red-500/20 text-red-300" :
+										"bg-sky-500/20 text-sky-300"
+									}`}>
+										{user.role}
+									</span>
+								</div>
+								<p className="mt-0.5 text-sm text-neutral-400">@{user.username}</p>
+								<p className="mt-0.5 text-sm text-neutral-500">{user.email}</p>
+								<p className="mt-2 text-xs text-neutral-600">
+									Member since{" "}
+									{new Date(user.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+								</p>
 							</div>
-							<p className="mt-0.5 text-sm text-neutral-400">@{user.username}</p>
-							<p className="mt-0.5 text-sm text-neutral-500">{user.email}</p>
-							<p className="mt-2 text-xs text-neutral-600">
-								Member since{" "}
-								{new Date(user.createdAt).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-							</p>
+
+							{!editing && (
+								<button
+									onClick={() => setEditing(true)}
+									className="shrink-0 rounded-lg border border-white/10 px-3 py-1.5 text-sm text-neutral-400 hover:border-sky-400/40 hover:text-white transition-colors"
+								>
+									Edit
+								</button>
+							)}
 						</div>
 
-						{!editing && (
-							<button
-								onClick={() => setEditing(true)}
-								className="shrink-0 rounded-lg border border-white/10 px-3 py-1.5 text-sm text-neutral-400 hover:border-sky-400/40 hover:text-white transition-colors"
-							>
-								Edit
-							</button>
-						)}
+						{/* Stats */}
+						<div className="mt-5 flex gap-6 border-t border-white/8 pt-4">
+							{[
+								["Posts", postTotal, null],
+								["Followers", counts?.followersCount ?? 0, "followers"],
+								["Following", counts?.followingCount ?? 0, "following"],
+							].map(([label, val, modal]) => (
+								<div key={label}>
+									{modal ? (
+										<button
+											onClick={() => setFollowModal(modal)}
+											style={{ background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0 }}
+											className="hover:opacity-70 transition-opacity"
+										>
+											<p className="text-sm font-semibold text-white">{val}</p>
+											<p className="text-xs text-neutral-500">{label}</p>
+										</button>
+									) : (
+										<div>
+											<p className="text-sm font-semibold text-white">{val}</p>
+											<p className="text-xs text-neutral-500">{label}</p>
+										</div>
+									)}
+								</div>
+							))}
+						</div>
 					</div>
 
-					{/* Stats */}
-					<div className="mt-5 flex gap-6 border-t border-white/8 pt-4">
-						{[
-							["Posts", postTotal, null],
-							["Followers", counts?.followersCount ?? 0, "followers"],
-							["Following", counts?.followingCount ?? 0, "following"],
-						].map(([label, val, modal]) => (
-							<div key={label}>
-								{modal ? (
-									<button
-										onClick={() => setFollowModal(modal)}
-										style={{ background: "none", border: "none", cursor: "pointer",
-											textAlign: "left", padding: 0 }}
-										className="hover:opacity-70 transition-opacity"
-									>
-										<p className="text-sm font-semibold text-white">{val}</p>
-										<p className="text-xs text-neutral-500">{label}</p>
-									</button>
-								) : (
-									<div>
-										<p className="text-sm font-semibold text-white">{val}</p>
-										<p className="text-xs text-neutral-500">{label}</p>
-									</div>
-								)}
-							</div>
+					{/* Edit form */}
+					{editing && (
+						<div className="rounded-xl border border-white/8 bg-white/3 p-6 mt-4">
+							<h2 className="text-sm font-semibold mb-4">Edit profile</h2>
+							<EditProfileForm user={user} onDone={() => setEditing(false)} />
+						</div>
+					)}
+
+					{/* Tabs */}
+					<div className="flex border-b border-white/8 mt-4">
+						{[["posts", "Posts"], ["likes", "Liked"]].map(([key, label]) => (
+							<button
+								key={key}
+								onClick={() => setActiveTab(key)}
+								className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+									activeTab === key
+										? "border-sky-400 text-white"
+										: "border-transparent text-neutral-500 hover:text-neutral-300"
+								}`}
+							>
+								{label}
+							</button>
 						))}
 					</div>
+
+					{/* Tab content */}
+					{activeTab === "posts" && <UserPostsTab userId={user.id} />}
+					{activeTab === "likes" && (
+						<div className="rounded-xl border border-dashed border-white/10 p-10 text-center mt-4">
+							<p className="text-sm text-neutral-500">Liked posts coming soon.</p>
+						</div>
+					)}
+
+					<p className="text-center text-xs text-neutral-700 py-4">
+						Hover your avatar to change it · Max 5MB
+					</p>
 				</div>
-
-				{/* Edit form */}
-				{editing && (
-					<div className="rounded-xl border border-white/8 bg-white/3 p-6">
-						<h2 className="text-sm font-semibold mb-4">Edit profile</h2>
-						<EditProfileForm user={user} onDone={() => setEditing(false)} />
-					</div>
-				)}
-
-				{/* Tabs */}
-				<div className="flex border-b border-white/8">
-					{[["posts", "Posts"], ["likes", "Liked"]].map(([key, label]) => (
-						<button
-							key={key}
-							onClick={() => setActiveTab(key)}
-							className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-								activeTab === key
-									? "border-sky-400 text-white"
-									: "border-transparent text-neutral-500 hover:text-neutral-300"
-							}`}
-						>
-							{label}
-						</button>
-					))}
-				</div>
-
-				{/* Tab content */}
-				{activeTab === "posts" && <UserPostsTab userId={user.id} />}
-				{activeTab === "likes" && (
-					<div className="rounded-xl border border-dashed border-white/10 p-10 text-center">
-						<p className="text-sm text-neutral-500">Liked posts coming soon.</p>
-					</div>
-				)}
-
-				<p className="text-center text-xs text-neutral-700 pb-4">
-					Hover your avatar to change it · Max 5MB
-				</p>
 			</div>
-			</div>
+
+			{followModal && (
+				<FollowListModal
+					userId={user.id}
+					tab={followModal}
+					onClose={() => setFollowModal(null)}
+				/>
+			)}
 		</div>
 	);
 }
