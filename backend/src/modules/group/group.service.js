@@ -71,11 +71,12 @@ export const getGroups = async ({ page = 1, limit = 12, search, visibility } = {
 
     const searchTerm = String(search || "").trim();
     if (searchTerm) {
-        const regex = new RegExp(escapeRegExp(searchTerm), "i");
+        const escaped = escapeRegExp(searchTerm);
+        const regex = new RegExp(escaped, "i");
         filter.$or = [
             { name: regex },
             { description: regex },
-            { tags: { $elemMatch: { $regex: regex, $options: "i" } } },
+            { tags: { $elemMatch: { $regex: escaped, $options: "i" } } },
         ];
     }
 
